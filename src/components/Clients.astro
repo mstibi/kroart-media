@@ -1,0 +1,302 @@
+---
+import { Image } from 'astro:assets';
+import { partners } from '../data/work';
+
+// tri kopije liste za beskonačnu petlju. Sve su klikabilne (vidljiva kartica je često kopija),
+// ali samo srednja je u tab redoslijedu i vidljiva čitačima ekrana.
+const sets = [0, 1, 2];
+---
+<div class="cl" data-cl>
+  <div class="cl-view">
+    <ul class="cl-track">
+      {sets.map((set) => partners.map((p, i) => {
+        const clone = set !== 1;
+        return (
+          <li class="card" data-i={i} aria-hidden={clone ? 'true' : undefined}>
+            <button class="face" type="button" aria-expanded="false" aria-label={`${p.name}: više o suradnji`} tabindex={clone ? -1 : undefined}>
+              <Image src={p.tile} alt="" widths={[260, 520]} sizes="260px" format="webp" class="tile" loading={set === 1 && i < 8 ? 'eager' : 'lazy'} draggable="false" />
+              <span class="num tc" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="plus" aria-hidden="true"></span>
+            </button>
+            <div class="more">
+              <div class="more-in">
+                {p.tag && <p class="m-tag">{p.tag}</p>}
+                <h3 class="m-name">{p.name}</h3>
+                {p.did && <p class="m-did">{p.did}</p>}
+                {p.work ? (
+                  <div class="m-work">
+                    {p.work.map((w) => (
+                      <a href={w.href} class="m-thumb" aria-label={`${p.name}: ${w.item.alt}`} tabindex={clone ? -1 : undefined} draggable="false">
+                        <Image src={w.item.src} alt="" width={180} format="webp" loading="lazy" draggable="false" />
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <a href="#kontakt" class="m-cta" tabindex={clone ? -1 : undefined} draggable="false">Želite sličnu suradnju? <span aria-hidden="true">→</span></a>
+                )}
+              </div>
+            </div>
+          </li>
+        );
+      }))}
+    </ul>
+  </div>
+</div>
+
+<style>
+  .cl { --w: 240px; --h: 264px; --open: min(640px, 88vw); --face-open: var(--w); }
+  .cl-view {
+    overflow: clip; /* bez nativnog scrolla: pomak radi transform, glatko i na compositoru */
+    touch-action: pan-y; /* okomiti scroll stranice ostaje pregledniku, vodoravni je naš */
+    cursor: grab;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  }
+  .cl-view.is-drag { cursor: grabbing; }
+  .cl-view.is-drag * { user-select: none; }
+  .cl-track {
+    position: relative; display: flex; gap: 12px; width: max-content;
+    margin: 0; padding: 2px 0; list-style: none;
+    will-change: transform;
+  }
+
+  .card {
+    position: relative; flex: none; display: flex;
+    width: var(--w); height: var(--h);
+    border-radius: var(--r-panel); overflow: hidden;
+    background: #000;
+    transition: width 0.85s var(--ease-out);
+  }
+  /* rub kao zaseban sloj iznad svega, da obrub jednako prati i sliku i rašireni dio */
+  .card::after {
+    content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: box-shadow 0.5s var(--ease-out);
+  }
+  .card:hover::after { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+  .card.is-open { width: var(--open); }
+  .card.is-open::after { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28); }
+  .card.is-kb::after { box-shadow: inset 0 0 0 2px var(--white); }
+
+  .face {
+    position: relative; flex: none;
+    width: var(--w); height: 100%;
+    overflow: hidden;
+    transition: width 0.85s var(--ease-out);
+  }
+  .card.is-open .face { width: var(--face-open); }
+  .face:focus-visible { outline: none; }
+  .tile {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    pointer-events: none; user-select: none;
+    opacity: 0.85;
+    transition: opacity 0.6s var(--ease-out), transform 1s var(--ease-out);
+  }
+  .card:hover .tile, .card.is-open .tile { opacity: 1; transform: scale(1.04); }
+
+  /* blago zatamnjenje vrha, da broj i plus ostanu čitljivi i na svijetlim fotografijama */
+  .face::after {
+    content: ''; position: absolute; inset: 0 0 auto; height: 34%; z-index: 0; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent);
+  }
+  .num { position: absolute; z-index: 1; top: 16px; left: 18px; font-size: var(--t-xs); color: var(--bone); }
+  .plus {
+    position: absolute; z-index: 1; top: 12px; right: 12px;
+    width: 30px; height: 30px; border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    transition: transform 0.6s var(--ease-out), background-color 0.4s, box-shadow 0.4s;
+  }
+  .plus::before, .plus::after {
+    content: ''; position: absolute; left: 50%; top: 50%;
+    width: 11px; height: 1.5px; margin: -0.75px 0 0 -5.5px;
+    background: var(--bone); border-radius: 2px;
+  }
+  .plus::after { transform: rotate(90deg); }
+  .card:hover .plus { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4); }
+  .card.is-open .plus { transform: rotate(135deg); background: var(--white); box-shadow: none; }
+  .card.is-open .plus::before, .card.is-open .plus::after { background: var(--ink); }
+
+  .more {
+    flex: 1; min-width: 0;
+    border-left: 1px solid var(--line);
+    opacity: 0; transform: translateX(18px);
+    transition: opacity 0.35s var(--ease-out), transform 0.6s var(--ease-out);
+  }
+  .card.is-open .more { opacity: 1; transform: none; transition-delay: 0.22s; }
+  /* fiksna širina sadržaja, da se tekst ne prelama dok se kartica širi */
+  .more-in {
+    width: calc(var(--open) - var(--face-open)); height: 100%;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    padding: 1.6rem 1.75rem 1.5rem;
+  }
+  .m-tag { font-size: var(--t-xs); color: var(--ash); }
+  .m-name { font-size: var(--t-l); font-weight: 750; font-stretch: 118%; line-height: 1.05; letter-spacing: -0.015em; color: var(--white); }
+  .m-did { font-size: var(--t-xs); color: var(--bone); max-width: 30ch; }
+  .m-work { display: flex; gap: 8px; margin-top: auto; }
+  .m-thumb {
+    position: relative; flex: none; width: 76px; aspect-ratio: 3 / 4;
+    border-radius: var(--r-img); overflow: hidden; background: var(--graphite);
+  }
+  .m-thumb :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease-out); }
+  .m-thumb:hover :global(img) { transform: scale(1.08); }
+  .m-cta { margin-top: auto; width: fit-content; font-size: var(--t-xs); color: var(--ash); transition: color 0.3s; }
+  .m-cta span { display: inline-block; transition: transform 0.5s var(--ease-out); }
+  .m-cta:hover { color: var(--white); }
+  .m-cta:hover span { transform: translateX(4px); }
+
+  @media (max-width: 640px) {
+    .cl { --w: 190px; --h: 210px; --open: 88vw; --face-open: 140px; }
+    .more-in { padding: 1.25rem 1.1rem; }
+    .m-thumb { width: 42px; }
+  }
+</style>
+
+<script>
+  function carousel() {
+    const root = document.querySelector<HTMLElement>('[data-cl]');
+    if (!root) return;
+    const view = root.querySelector<HTMLElement>('.cl-view')!;
+    const track = root.querySelector<HTMLElement>('.cl-track')!;
+    const cards = [...root.querySelectorAll<HTMLElement>('.card')];
+    const N = cards.length / 3;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const AUTO = 0.45; // px po frameu pri 60 fps
+    const ac = new AbortController();
+    const on = { signal: ac.signal };
+    const now = () => performance.now();
+
+    const setW = () => cards[N].offsetLeft - cards[0].offsetLeft;
+    // prva kartica srednje kopije poravnata s lijevim rubom sadržaja stranice
+    const wrapEl = root.closest('section')?.querySelector<HTMLElement>('.wrap');
+    const lead = wrapEl ? wrapEl.getBoundingClientRect().left - view.getBoundingClientRect().left + parseFloat(getComputedStyle(wrapEl).paddingLeft) : 0;
+    let pos = cards[N].offsetLeft - lead;
+
+    let speed = 0, hover = false, visible = true, resumeAt = 0;
+    let open: number | null = null;
+    let aim: number | null = null, aimUntil = 0; // indeks kartice koju treba dovesti u sredinu
+
+    const clonesOf = (i: number) => [cards[i], cards[i + N], cards[i + 2 * N]];
+    // od tri identične kopije uzmi onu najbližu trenutnom pogledu
+    const nearest = (i: number) => {
+      const mid = pos + view.clientWidth / 2;
+      return clonesOf(i).reduce((a, b) =>
+        Math.abs(b.offsetLeft + b.offsetWidth / 2 - mid) < Math.abs(a.offsetLeft + a.offsetWidth / 2 - mid) ? b : a);
+    };
+    const setOpen = (i: number | null) => {
+      open = i;
+      cards.forEach((c) => {
+        const o = i !== null && Number(c.dataset.i) === i;
+        c.classList.toggle('is-open', o);
+        c.querySelector('.face')!.setAttribute('aria-expanded', String(o));
+      });
+      if (i !== null) { aim = i; aimUntil = now() + 1100; } else resumeAt = now() + 800;
+    };
+
+    // povlačenje: miš, dodir i olovka kroz pointer evente
+    let down = false, dragging = false, moved = false;
+    let startX = 0, startY = 0, startPos = 0, lastX = 0, lastT = 0, vel = 0;
+    view.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      down = true; dragging = false; moved = false;
+      startX = lastX = e.clientX; startY = e.clientY; startPos = pos; lastT = now(); vel = 0;
+    }, on);
+    window.addEventListener('pointermove', (e) => {
+      if (!down) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (!dragging) {
+        if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+        dragging = moved = true; aim = null; speed = 0;
+        view.classList.add('is-drag');
+        startX = e.clientX; startPos = pos; // bez skoka od praga
+      }
+      const t = now();
+      vel = (lastX - e.clientX) / Math.max(1, t - lastT) * 16.667; // px po frameu
+      lastX = e.clientX; lastT = t;
+      pos = startPos - (e.clientX - startX);
+    }, on);
+    const end = () => {
+      if (!down) return;
+      down = false;
+      if (dragging) {
+        dragging = false; view.classList.remove('is-drag');
+        speed = Math.max(-45, Math.min(45, now() - lastT < 80 ? vel : 0)); // zalet nakon puštanja
+        resumeAt = now() + 1500;
+        setTimeout(() => { moved = false; }, 0); // klik (ako ga ima) stiže prije ovoga
+      }
+    };
+    window.addEventListener('pointerup', end, on);
+    window.addEventListener('pointercancel', end, on); // npr. preglednik preuzme okomiti scroll
+    // klik nakon povlačenja nije klik
+    view.addEventListener('click', (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); } }, { capture: true, signal: ac.signal });
+    view.addEventListener('dragstart', (e) => e.preventDefault(), on);
+
+    // vodoravni scroll trackpadom
+    view.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      pos += e.deltaX; aim = null; speed = 0; resumeAt = now() + 1500;
+    }, { passive: false, signal: ac.signal });
+
+    view.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') hover = true; }, on);
+    view.addEventListener('pointerleave', () => { hover = false; }, on);
+
+    root.addEventListener('click', (e) => {
+      const face = (e.target as HTMLElement).closest<HTMLElement>('.face');
+      if (!face) return;
+      const i = Number(face.closest<HTMLElement>('.card')!.dataset.i);
+      setOpen(open === i ? null : i);
+    }, on);
+
+    // tipkovnica: fokus je na srednjoj kopiji, a obrub i centriranje prate kopiju koja se vidi
+    root.addEventListener('focusin', (e) => {
+      const card = (e.target as HTMLElement).closest<HTMLElement>('.card');
+      if (!card) return;
+      const i = Number(card.dataset.i);
+      aim = i; aimUntil = now() + 900; resumeAt = now() + 4000;
+      const kb = (e.target as HTMLElement).matches(':focus-visible');
+      cards.forEach((c) => c.classList.toggle('is-kb', kb && Number(c.dataset.i) === i));
+    }, on);
+    root.addEventListener('focusout', () => cards.forEach((c) => c.classList.remove('is-kb')), on);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open !== null) setOpen(null); }, on);
+
+    const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; });
+    io.observe(root);
+
+    let raf = 0, last = now();
+    const tick = (t: number) => {
+      raf = requestAnimationFrame(tick);
+      const dt = Math.min(t - last, 50) / 16.667;
+      last = t;
+      if (!visible || document.hidden) return;
+
+      const paused = reduce || hover || dragging || open !== null || t < resumeAt;
+      // zalet se gasi postupno, a automatsko kretanje se lagano pali/gasi
+      speed += ((paused ? 0 : AUTO) - speed) * Math.min(1, 0.045 * dt);
+
+      if (aim !== null) {
+        // cilj se mijenja dok se kartica širi, pa ga računamo svaki frame
+        const c = nearest(aim);
+        const target = c.offsetLeft + c.offsetWidth / 2 - view.clientWidth / 2;
+        pos += (target - pos) * Math.min(1, 0.11 * dt);
+        if (t > aimUntil && Math.abs(target - pos) < 0.5) aim = null;
+        if (t > aimUntil + 4000) aim = null;
+      } else if (!dragging) {
+        pos += speed * dt;
+      }
+
+      // beskonačna petlja: drži pogled u srednjoj kopiji (kopije su identične, skok se ne vidi)
+      const w = setW();
+      const shift = pos < w * 0.5 ? w : pos > w * 1.5 ? -w : 0;
+      if (shift) { pos += shift; startPos += shift; }
+
+      track.style.transform = `translate3d(${-pos}px, 0, 0)`;
+    };
+    raf = requestAnimationFrame(tick);
+
+    document.addEventListener('astro:before-swap', () => {
+      cancelAnimationFrame(raf); io.disconnect(); ac.abort();
+    }, { once: true });
+  }
+  document.addEventListener('astro:page-load', carousel);
+</script>

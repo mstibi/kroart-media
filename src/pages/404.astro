@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Stranica ne postoji | KroArt Media">
+  <section class="nf wrap">
+    <p class="tc code">404</p>
+    <h1 class="display">Ova stranica ne postoji.</h1>
+    <p>Možda je link zastario. Radove pogledajte na naslovnici.</p>
+    <a href="/" class="btn btn-solid">Na naslovnicu</a>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 80svh; display: grid; align-content: center; justify-items: start; gap: 1.25rem; padding-top: 6rem; }
+  .code { color: var(--ash); font-size: var(--t-xs); }
+  h1 { font-size: var(--t-3xl); color: var(--white); }
+</style>

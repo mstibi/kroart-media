@@ -1,0 +1,242 @@
+---
+import LogoMark from './LogoMark.astro';
+import { sections } from '../data/work';
+
+const projects = sections.map((s) => ({ href: `/${s.slug}/`, label: s.title, count: s.count }));
+// redoslijed prati naslovnicu: projekti, suradnje, usluge, o nama
+const anchors = [
+  { href: '/#suradnje', label: 'Suradnje' },
+  { href: '/#usluge', label: 'Usluge' },
+  { href: '/#o-nama', label: 'O nama' },
+];
+---
+<header class="hdr" id="hdr" transition:persist="site-header">
+  <div class="pill">
+    <a href="/" class="mark" aria-label="KroArt Media, naslovnica"><LogoMark class="mark-svg" /></a>
+
+    <nav class="nav" aria-label="Glavna navigacija">
+      <span class="hl" aria-hidden="true"></span>
+      <div class="dd">
+        <button class="nav-item dd-btn" type="button" aria-expanded="false" aria-controls="dd-menu">
+          Projekti
+          <svg class="chev" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <div class="dd-menu" id="dd-menu">
+          {projects.map((p) => (
+            <a href={p.href} class="dd-link" data-project>
+              <span>{p.label}</span>
+              <span class="dd-count tc">{String(p.count).padStart(2, '0')}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+      {anchors.map((l) => <a href={l.href} class="nav-item">{l.label}</a>)}
+    </nav>
+
+    <a href="/#kontakt" class="btn btn-solid cta">Pošalji upit</a>
+
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav">
+      <span class="sr-only">Izbornik</span>
+      <span class="bars" aria-hidden="true"><i></i><i></i></span>
+    </button>
+  </div>
+
+  <div class="sheet" id="mnav">
+    <div class="sheet-in">
+      <p class="sheet-label" style="--i: 0">Projekti</p>
+      {projects.map((p, i) => <a href={p.href} class="sheet-link sheet-sub display" style={`--i: ${i + 1}`} data-project>{p.label}</a>)}
+      {anchors.map((l, i) => <a href={l.href} class="sheet-link display" style={`--i: ${i + 4}`}>{l.label}</a>)}
+      <a href="/#kontakt" class="sheet-link display" style="--i: 7">Kontakt</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .hdr {
+    position: fixed; z-index: 50;
+    top: 14px; left: 50%;
+    width: min(760px, calc(100% - 2 * 12px));
+    transform: translate(-50%, 0);
+    border-radius: 28px;
+    background: rgba(22, 22, 22, 0.55);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: inset 0 0 0 1px var(--line), 0 10px 40px -10px rgba(0, 0, 0, 0.6);
+    transition: width 0.6s var(--ease-out), top 0.6s var(--ease-out), background-color 0.4s;
+    opacity: 0;
+    animation: hdr-in 0.9s var(--ease-out) 0.15s forwards;
+  }
+  /* ulazna animacija samo na prvom učitavanju; persistirani header se pri navigaciji ne smije ponovno pojaviti */
+  .hdr.is-in { opacity: 1; animation: none; }
+  @keyframes hdr-in {
+    from { opacity: 0; transform: translate(-50%, -24px) scale(0.96); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  }
+  .hdr.is-scrolled { top: 10px; width: min(680px, calc(100% - 2 * 12px)); background: rgba(16, 16, 16, 0.78); }
+
+  .pill { display: flex; align-items: center; gap: 0.5rem; height: 56px; padding: 0 6px 0 18px; }
+  .mark { display: flex; align-items: center; height: 100%; padding-right: 0.5rem; color: var(--white); }
+  .mark :global(svg) { width: 46px; height: auto; transition: transform 0.5s var(--ease-out); }
+  .mark:hover :global(svg) { transform: scale(1.06); }
+
+  .nav { position: relative; display: flex; align-items: center; margin-inline: auto; }
+  .nav-item {
+    position: relative; z-index: 1;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.55rem 0.95rem;
+    font-size: var(--t-xs); font-weight: 500;
+    color: var(--ash);
+    transition: color 0.35s var(--ease-out);
+  }
+  .nav-item:hover, .nav-item.is-active, .dd.is-open .dd-btn { color: var(--white); }
+  .chev { transition: transform 0.45s var(--ease-out); }
+  .dd.is-open .chev { transform: rotate(180deg); }
+  .hl {
+    position: absolute; top: 50%; left: 0; height: 36px; width: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.09);
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: transform 0.5s var(--ease-out), width 0.5s var(--ease-out), opacity 0.3s;
+    pointer-events: none;
+  }
+
+  /* Projekti dropdown */
+  .dd { position: relative; }
+  .dd-menu {
+    position: absolute; top: calc(100% + 14px); left: 50%;
+    display: grid; min-width: 220px; padding: 6px;
+    border-radius: 20px;
+    background: rgba(20, 20, 22, 0.94);
+    box-shadow: inset 0 0 0 1px var(--line), 0 24px 60px -16px rgba(0, 0, 0, 0.7);
+    opacity: 0; visibility: hidden;
+    transform: translate(-50%, -8px) scale(0.97);
+    transform-origin: 50% 0;
+    transition: opacity 0.3s var(--ease-out), transform 0.5s var(--ease-out), visibility 0s 0.3s;
+  }
+  /* most preko razmaka da hover ne pukne između gumba i izbornika */
+  .dd-menu::before { content: ''; position: absolute; left: 0; right: 0; top: -14px; height: 14px; }
+  .dd.is-open .dd-menu {
+    opacity: 1; visibility: visible; transform: translate(-50%, 0) scale(1);
+    transition: opacity 0.3s var(--ease-out), transform 0.5s var(--ease-out), visibility 0s;
+  }
+  .dd-link {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 2rem;
+    padding: 0.7rem 0.9rem; border-radius: 14px;
+    font-size: var(--t-s); font-weight: 600; font-stretch: 112%; color: var(--bone);
+    opacity: 0; transform: translateY(-4px);
+    transition: background-color 0.3s, color 0.3s, opacity 0.35s var(--ease-out), transform 0.5s var(--ease-out);
+  }
+  .dd.is-open .dd-link { opacity: 1; transform: none; }
+  .dd.is-open .dd-link:nth-child(2) { transition-delay: 0s, 0s, 0.04s, 0.04s; }
+  .dd.is-open .dd-link:nth-child(3) { transition-delay: 0s, 0s, 0.08s, 0.08s; }
+  .dd-link:hover, .dd-link:focus-visible, .dd-link.is-active { background: rgba(255, 255, 255, 0.07); color: var(--white); }
+  .dd-count { font-size: var(--t-xs); font-weight: 500; color: var(--ash); }
+
+  .cta { height: 44px; }
+
+  .menu-btn { display: none; width: 44px; height: 44px; border-radius: 999px; margin-left: auto; }
+  .bars { position: relative; display: block; width: 18px; height: 10px; margin: auto; }
+  .bars i {
+    position: absolute; left: 0; width: 100%; height: 1.5px; background: var(--white); border-radius: 2px;
+    transition: transform 0.45s var(--ease-out), top 0.45s var(--ease-out);
+  }
+  .bars i:first-child { top: 0; }
+  .bars i:last-child { top: 8.5px; }
+  .hdr.is-open .bars i:first-child { top: 4.25px; transform: rotate(45deg); }
+  .hdr.is-open .bars i:last-child { top: 4.25px; transform: rotate(-45deg); }
+
+  .sheet { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.6s var(--ease-out); }
+  .sheet-in { overflow: hidden; display: flex; flex-direction: column; padding-inline: 18px; }
+  .sheet-label, .sheet-link {
+    opacity: 0; transform: translateY(14px);
+    transition: opacity 0.4s var(--ease-out), transform 0.5s var(--ease-out);
+  }
+  .sheet-label { font-size: var(--t-xs); color: var(--ash); padding-top: 0.5rem; }
+  .sheet-link { font-size: var(--t-xl); padding: 0.3rem 0; color: var(--bone); }
+  .sheet-sub { font-size: var(--t-l); padding-left: 0.9rem; color: var(--ash); }
+  .sheet-sub:nth-of-type(3) { padding-bottom: 0.6rem; }
+  .sheet-link.is-active { color: var(--white); }
+  .sheet-link:last-child { padding-bottom: 1.25rem; }
+  .hdr.is-open .sheet { grid-template-rows: 1fr; }
+  .hdr.is-open :is(.sheet-label, .sheet-link) { opacity: 1; transform: none; transition-delay: calc(var(--i) * 0.035s); }
+
+  @media (max-width: 760px) {
+    .nav, .cta { display: none; }
+    .menu-btn { display: block; }
+    .hdr.is-scrolled { width: calc(100% - 2 * 12px); }
+  }
+  @media (min-width: 761px) { .sheet { display: none; } }
+</style>
+
+<script>
+  const hdr = document.getElementById('hdr')!;
+  const nav = hdr.querySelector<HTMLElement>('.nav')!;
+  const hl = hdr.querySelector<HTMLElement>('.hl')!;
+  const btn = hdr.querySelector<HTMLButtonElement>('.menu-btn')!;
+  const dd = hdr.querySelector<HTMLElement>('.dd')!;
+  const ddBtn = hdr.querySelector<HTMLButtonElement>('.dd-btn')!;
+  const items = [...hdr.querySelectorAll<HTMLElement>('.nav-item')];
+  const projectLinks = [...hdr.querySelectorAll<HTMLAnchorElement>('[data-project]')];
+
+  hdr.addEventListener('animationend', () => hdr.classList.add('is-in'), { once: true });
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) hdr.classList.add('is-in');
+
+  // Pozadinska "pilula" prati hover, a vraća se na aktivnu stavku
+  const moveTo = (el: HTMLElement | null) => {
+    if (!el) { hl.style.opacity = '0'; return; }
+    hl.style.opacity = '1';
+    hl.style.width = `${el.offsetWidth}px`;
+    hl.style.transform = `translate(${el.offsetLeft + (el.offsetParent === nav ? 0 : (el.offsetParent as HTMLElement).offsetLeft)}px, -50%)`;
+  };
+  const active = () => items.find((l) => l.classList.contains('is-active')) ?? null;
+  items.forEach((l) => l.addEventListener('mouseenter', () => moveTo(l)));
+  nav.addEventListener('mouseleave', () => moveTo(active()));
+
+  // Dropdown: hover na desktopu, klik i tipkovnica svugdje
+  let closeT = 0;
+  const setDd = (open: boolean) => {
+    clearTimeout(closeT);
+    dd.classList.toggle('is-open', open);
+    ddBtn.setAttribute('aria-expanded', String(open));
+  };
+  if (matchMedia('(hover: hover)').matches) {
+    dd.addEventListener('mouseenter', () => setDd(true));
+    dd.addEventListener('mouseleave', () => { closeT = window.setTimeout(() => setDd(false), 180); });
+  }
+  ddBtn.addEventListener('click', () => setDd(!dd.classList.contains('is-open')));
+  dd.addEventListener('focusout', (e) => { if (!dd.contains(e.relatedTarget as Node)) setDd(false); });
+  document.addEventListener('click', (e) => { if (!dd.contains(e.target as Node)) setDd(false); });
+
+  const setOpen = (open: boolean) => {
+    hdr.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', String(open));
+  };
+  btn.addEventListener('click', () => setOpen(!hdr.classList.contains('is-open')));
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (dd.classList.contains('is-open')) { setDd(false); ddBtn.focus(); }
+    setOpen(false);
+  });
+  // sidra na istoj stranici ne okidaju page-load, pa zatvaramo izbornike na sam klik
+  hdr.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => { setDd(false); setOpen(false); }));
+
+  const onScroll = () => hdr.classList.toggle('is-scrolled', window.scrollY > 40);
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Header je persistiran kroz navigacije, pa aktivnu stavku ažuriramo na svakoj stranici
+  document.addEventListener('astro:page-load', () => {
+    let inProjects = false;
+    projectLinks.forEach((l) => {
+      const on = location.pathname.startsWith(new URL(l.href).pathname);
+      inProjects ||= on;
+      l.classList.toggle('is-active', on);
+      if (on) l.setAttribute('aria-current', 'page'); else l.removeAttribute('aria-current');
+    });
+    ddBtn.classList.toggle('is-active', inProjects);
+    setDd(false);
+    setOpen(false);
+    onScroll();
+    requestAnimationFrame(() => moveTo(active()));
+  });
+</script>

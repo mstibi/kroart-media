@@ -1,0 +1,132 @@
+@import '@fontsource-variable/archivo/wdth.css';
+
+:root {
+  --ink: #000000;
+  --graphite: #161616;
+  --ash: #8a8a8a;
+  --bone: #ededed;
+  --white: #ffffff;
+  --line: rgba(255, 255, 255, 0.12);
+  --bg: #0a0a0c;
+
+  --font: 'Archivo Variable', system-ui, sans-serif;
+  /* skala 1.333 (perfect fourth) */
+  --t-xs: 0.8125rem;
+  --t-s: 1.0625rem;
+  --t-m: 1.375rem;
+  --t-l: clamp(1.5rem, 1.1rem + 1.6vw, 1.875rem);
+  --t-xl: clamp(1.875rem, 1.2rem + 2.6vw, 2.5rem);
+  --t-2xl: clamp(2.25rem, 1.2rem + 4vw, 3.3125rem);
+  --t-3xl: clamp(2.75rem, 1rem + 6.5vw, 4.4375rem);
+
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+  --max: 1280px;
+  --r-panel: 20px;
+  --r-img: 6px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.7, 0, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--bg); scroll-behavior: smooth; }
+/* sidra iz headera ne smiju završiti ispod plutajućeg headera */
+[id] { scroll-margin-top: 96px; }
+body {
+  margin: 0;
+  color: var(--bone);
+  font-family: var(--font);
+  font-size: var(--t-s);
+  line-height: 1.65;
+  font-stretch: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+/* Pozadina: tamni grafit s dva tiha svjetla i zrnom, fiksna dok se stranica skrola */
+body::before, body::after {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+}
+body::before {
+  background:
+    radial-gradient(55% 60% at 82% 12%, rgba(126, 108, 255, 0.16), transparent 70%),
+    radial-gradient(45% 50% at 4% 100%, rgba(255, 146, 92, 0.07), transparent 70%),
+    linear-gradient(180deg, #111115 0%, var(--bg) 60%);
+}
+body::after {
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+img, video, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+::selection { background: var(--white); color: var(--ink); }
+
+:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.display {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.tc { font-variant-numeric: tabular-nums; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- Gumbi ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5em;
+  height: 44px; padding: 0 1.25rem;
+  border-radius: 999px;
+  font-size: var(--t-xs); font-weight: 600; letter-spacing: 0.01em;
+  transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+}
+.btn:active { transform: scale(0.97); }
+.btn-solid { background: var(--white); color: var(--ink); }
+.btn-solid:hover { background: var(--bone); }
+.btn-ghost { box-shadow: inset 0 0 0 1px var(--line); color: var(--bone); }
+.btn-ghost:hover { box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
+
+/* ---------- View transitions ---------- */
+::view-transition-group(*) {
+  animation-duration: 0.7s;
+  animation-timing-function: var(--ease-inout);
+}
+/* Naslovne slike panela i galerija: izreži umjesto razvlačenja tijekom morfa */
+::view-transition-old(*):only-child,
+::view-transition-new(*):only-child { animation-duration: 0.45s; }
+::view-transition-image-pair(cover-fotografije),
+::view-transition-image-pair(cover-videi),
+::view-transition-image-pair(cover-vizuali) { overflow: hidden; border-radius: var(--r-panel); }
+::view-transition-old(cover-fotografije), ::view-transition-new(cover-fotografije),
+::view-transition-old(cover-videi), ::view-transition-new(cover-videi),
+::view-transition-old(cover-vizuali), ::view-transition-new(cover-vizuali) {
+  height: 100%; width: 100%; object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}

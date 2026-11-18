@@ -1,0 +1,11 @@
+---
+import { LOGO_VIEWBOX, LOGO_MAIN, LOGO_PLAY, LOGO_DOTS, LOGO_DOT_R as r } from '../data/logo';
+interface Props { class?: string; title?: string }
+const { class: cls, title = 'KroArt Media' } = Astro.props;
+// točkice kao prave rupe (evenodd), da se kroz njih vidi pozadina headera
+const dots = LOGO_DOTS.map(([cx, cy]) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`).join('');
+---
+<svg class={cls} viewBox={LOGO_VIEWBOX} role="img" aria-label={title} fill="currentColor">
+  <path d={LOGO_MAIN + dots} fill-rule="evenodd" />
+  <path d={LOGO_PLAY} />
+</svg>

@@ -1,0 +1,94 @@
+---
+import { CONTACT_EMAIL, INSTAGRAM } from '../data/work';
+// Web3Forms ključ (besplatno, web3forms.com) ide u Cloudflare Pages env varijablu PUBLIC_WEB3FORMS_KEY.
+// Bez ključa forma se ne prikazuje, ostaju email i Instagram.
+const key = import.meta.env.PUBLIC_WEB3FORMS_KEY;
+---
+<section class="contact wrap" id="kontakt" aria-labelledby="kontakt-title">
+  <div class="intro">
+    <h2 id="kontakt-title" class="display">Imate projekt na umu?</h2>
+    <p>Napišite nam što trebate: video, fotke, vođenje profila ili web stranicu. Javit ćemo se s prijedlogom i cijenom.</p>
+    <div class="direct">
+      <a href={`mailto:${CONTACT_EMAIL}`} class="btn btn-solid">{CONTACT_EMAIL}</a>
+      <a href={INSTAGRAM} class="btn btn-ghost" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </div>
+
+  {key && (
+    <form class="form" action="https://api.web3forms.com/submit" method="POST" data-form>
+      <input type="hidden" name="access_key" value={key} />
+      <input type="hidden" name="subject" value="Novi upit s kroart.media" />
+      <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" autocomplete="off" />
+      <label class="field">
+        <span>Ime</span>
+        <input name="name" required autocomplete="name" />
+      </label>
+      <label class="field">
+        <span>Email</span>
+        <input name="email" type="email" required autocomplete="email" />
+      </label>
+      <label class="field">
+        <span>Poruka</span>
+        <textarea name="message" rows="4" required></textarea>
+      </label>
+      <button class="btn btn-solid send" type="submit">Pošalji upit</button>
+      <p class="status" role="status" aria-live="polite"></p>
+    </form>
+  )}
+</section>
+
+<style>
+  .contact {
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 5rem);
+    padding-block: clamp(5rem, 10vw, 9rem);
+  }
+  .intro { display: grid; align-content: start; gap: 1.25rem; }
+  h2 { font-size: var(--t-3xl); color: var(--white); }
+  .intro p { max-width: 42ch; color: var(--bone); opacity: 0.8; }
+  .direct { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+
+  .form { display: grid; gap: 1rem; align-content: start; }
+  .field { display: grid; gap: 0.4rem; font-size: var(--t-xs); color: var(--ash); }
+  .field input, .field textarea {
+    width: 100%; padding: 0.9rem 1rem;
+    font: inherit; font-size: var(--t-s); color: var(--white);
+    background: var(--graphite);
+    border: 0; border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: box-shadow 0.3s var(--ease-out);
+    resize: vertical;
+  }
+  .field input:focus, .field textarea:focus { outline: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.6); }
+  .send { justify-self: start; height: 48px; padding: 0 1.75rem; }
+  .send[disabled] { opacity: 0.5; pointer-events: none; }
+  .status { min-height: 1.5em; font-size: var(--t-xs); color: var(--bone); }
+
+  @media (max-width: 860px) { .contact { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  function form() {
+    const f = document.querySelector<HTMLFormElement>('[data-form]');
+    if (!f) return;
+    const status = f.querySelector<HTMLElement>('.status')!;
+    const btn = f.querySelector<HTMLButtonElement>('.send')!;
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      btn.disabled = true; btn.textContent = 'Šaljem…'; status.textContent = '';
+      try {
+        const res = await fetch(f.action, {
+          method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(f),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message);
+        f.reset();
+        status.textContent = 'Upit je poslan. Javit ćemo vam se uskoro.';
+      } catch {
+        status.textContent = 'Upit nije poslan. Provjerite vezu i pokušajte ponovno ili pišite na contact@kroart.media.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Pošalji upit';
+      }
+    });
+  }
+  document.addEventListener('astro:page-load', form);
+</script>

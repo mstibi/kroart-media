@@ -1,0 +1,107 @@
+---
+import { Picture } from 'astro:assets';
+import { photos, visuals, videos, sections, covers as coverSlugs } from '../data/work';
+
+const bySlug = <T extends { slug: string }>(list: T[], slug: string) => list.find((x) => x.slug === slug) ?? list[0];
+const covers = {
+  fotografije: bySlug(photos, coverSlugs.fotografije),
+  videi: bySlug(videos, coverSlugs.videi),
+  vizuali: bySlug(visuals, coverSlugs.vizuali),
+};
+---
+<section class="panels wrap" id="projekti" aria-label="Projekti">
+  {sections.map((s) => {
+    const c = covers[s.slug];
+    return (
+      <a href={`/${s.slug}/`} class="panel" data-kind={s.slug}>
+        <div class="cover" transition:name={`cover-${s.slug}`}>
+          <Picture src={c.src} alt="" formats={['avif', 'webp']} widths={[480, 800, 1200]}
+            sizes="(max-width: 720px) 100vw, 50vw" loading="eager" class="cover-img" />
+          {s.slug === 'videi' && (
+            <video class="cover-vid" src={covers.videi.preview} muted loop playsinline preload="none" aria-hidden="true"></video>
+          )}
+        </div>
+        <div class="meta">
+          <h2 class="title display" transition:name={`title-${s.slug}`}>{s.title}</h2>
+          <p class="note">{s.note}</p>
+          <span class="count tc" aria-label={`${s.count} radova`}>{String(s.count).padStart(2, '0')}</span>
+        </div>
+      </a>
+    );
+  })}
+</section>
+
+<style>
+  .panels {
+    display: flex; gap: 12px;
+    height: min(78svh, 760px);
+    min-height: 460px;
+  }
+  .panel {
+    position: relative; flex: 1 1 0; min-width: 0;
+    border-radius: var(--r-panel);
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--graphite);
+    container-type: inline-size;
+    transition: flex-grow 0.9s var(--ease-out);
+  }
+  .panels:has(.panel:hover) .panel, .panels:has(.panel:focus-visible) .panel { flex-grow: 0.75; }
+  .panels:has(.panel:hover) .panel:hover, .panels:has(.panel:focus-visible) .panel:focus-visible { flex-grow: 1.7; }
+
+  .cover { position: absolute; inset: 0; z-index: -1; }
+  .cover :global(picture), .cover-img, .cover-vid {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  }
+  .cover-img { transform: scale(1.04); transition: transform 1.2s var(--ease-out), filter 0.9s var(--ease-out); filter: brightness(0.82) saturate(0.95); }
+  .panel:hover .cover-img, .panel:focus-visible .cover-img { transform: scale(1); filter: brightness(1) saturate(1.05); }
+  .cover-vid { opacity: 0; transition: opacity 0.6s var(--ease-out); }
+  .cover-vid.is-playing { opacity: 1; }
+  .cover::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,0) 45%);
+  }
+
+  .meta {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 1rem;
+    padding: clamp(1rem, 2vw, 1.75rem);
+  }
+  /* veličina prati širinu panela, pa naslov raste zajedno s panelom na hover */
+  .title { grid-column: 1; font-size: clamp(1.4rem, 9cqi, 4rem); white-space: nowrap; color: var(--white); width: fit-content; }
+  .note {
+    grid-column: 1; margin-top: 0.4rem;
+    font-size: var(--t-xs); color: var(--bone);
+    opacity: 0.75;
+    transition: opacity 0.6s var(--ease-out);
+  }
+  .count { grid-column: 2; grid-row: 1 / span 2; font-size: var(--t-xs); color: var(--bone); }
+
+  @media (max-width: 860px) {
+    .panels { flex-direction: column; height: auto; min-height: 0; }
+    .panel { flex: none; height: 62svh; min-height: 340px; }
+    .panels:has(.panel:hover) .panel, .panels:has(.panel:hover) .panel:hover { flex-grow: 0; }
+    .title { font-size: clamp(1.75rem, 9cqi, 3.5rem); }
+  }
+</style>
+
+<script>
+  // Video panel: nijemi pregled na hover; na dodir/mobitelu kad je panel u kadru
+  function panels() {
+    const panel = document.querySelector<HTMLElement>('.panel[data-kind="videi"]');
+    const vid = panel?.querySelector<HTMLVideoElement>('.cover-vid');
+    if (!panel || !vid) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const play = () => { vid.play().then(() => vid.classList.add('is-playing')).catch(() => {}); };
+    const stop = () => { vid.classList.remove('is-playing'); vid.pause(); };
+    if (matchMedia('(hover: hover)').matches) {
+      panel.addEventListener('mouseenter', play);
+      panel.addEventListener('mouseleave', stop);
+      panel.addEventListener('focus', play);
+      panel.addEventListener('blur', stop);
+    } else {
+      new IntersectionObserver(([e]) => (e.isIntersecting ? play() : stop()), { threshold: 0.6 }).observe(panel);
+    }
+  }
+  document.addEventListener('astro:page-load', panels);
+</script>

@@ -1,0 +1,131 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Panels from '../components/Panels.astro';
+import Contact from '../components/Contact.astro';
+import Clients from '../components/Clients.astro';
+import Reviews from '../components/Reviews.astro';
+
+const services = [
+  { title: 'Fotografija i videoprodukcija', text: 'Snimamo koncerte, evente, reklame, portrete i prostore. Fotografija i video iz jedne ruke, spremni za objavu, tisak i web.' },
+  { title: 'Video montaža', text: 'Reels, TikTok i YouTube sadržaj, event recapovi i reklame. Montaža koja drži pažnju do zadnjeg kadra.' },
+  { title: 'Društvene mreže', text: 'Strategija, plan objava, vizuali i vođenje profila. Vi radite svoj posao, mi brinemo da se vidi.' },
+  { title: 'Web stranice', text: 'Brze i moderne stranice koje predstavljaju vaš brend i rade na svakom ekranu.' },
+];
+---
+<Base>
+  <Hero />
+  <Panels />
+
+  <section class="sec" id="suradnje" aria-labelledby="suradnje-t">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <h2 id="suradnje-t" class="sec-title display">Suradnje</h2>
+        <p class="sec-aside">Brendovi, klubovi i influenceri s kojima smo radili. Kliknite karticu za više.</p>
+      </header>
+    </div>
+    <div class="reveal"><Clients /></div>
+  </section>
+
+  <section class="sec wrap" id="recenzije" aria-labelledby="recenzije-t">
+    <header class="sec-head reveal">
+      <h2 id="recenzije-t" class="sec-title display">Recenzije</h2>
+      <p class="sec-aside">Poruke klijenata, točno kako su stigle</p>
+    </header>
+    <Reviews />
+  </section>
+
+  <section class="sec wrap" id="usluge" aria-labelledby="usluge-t">
+    <header class="sec-head reveal">
+      <h2 id="usluge-t" class="sec-title display">Usluge</h2>
+      <p class="sec-aside">Od ideje i snimanja do objave</p>
+    </header>
+    <ol class="services">
+      {services.map((s, i) => (
+        <li class="service reveal">
+          <span class="s-num tc">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="s-title">{s.title}</h3>
+          <p class="s-text">{s.text}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="sec wrap" id="o-nama" aria-labelledby="o-nama-t">
+    <header class="sec-head reveal">
+      <h2 id="o-nama-t" class="sec-title display">O nama</h2>
+      <p class="sec-aside">Osijek, Hrvatska</p>
+    </header>
+    <p class="about-text reveal">
+      Tim montažera, dizajnera i developera iz Osijeka. Sirove snimke pretvaramo u sadržaj koji se gleda do kraja.
+      Spajamo podatke s provjerenim tehnikama montaže, pa vaš brend ne dobiva samo preglede, nego i fanove.
+    </p>
+  </section>
+
+  <Contact />
+</Base>
+
+<style>
+  .sec { padding-block: clamp(5rem, 10vw, 9rem) 0; }
+  .sec-head {
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem 2rem; flex-wrap: wrap;
+    padding-bottom: 1.25rem; margin-bottom: clamp(1.75rem, 3vw, 2.75rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .sec-title { font-size: var(--t-2xl); color: var(--white); }
+  .sec-aside { font-size: var(--t-xs); color: var(--ash); max-width: 46ch; text-align: right; }
+
+  .services { list-style: none; margin: 0; padding: 0; }
+  .service {
+    display: grid; grid-template-columns: 4rem minmax(0, 1.1fr) minmax(0, 1fr); align-items: baseline; gap: 0.5rem 2rem;
+    padding: 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .service:first-child { padding-top: 0.4rem; }
+  .s-num { font-size: var(--t-xs); color: var(--ash); transition: color 0.4s var(--ease-out); }
+  .s-title {
+    font-size: var(--t-xl); font-weight: 700; font-stretch: 118%; line-height: 1.1; letter-spacing: -0.015em;
+    color: var(--bone);
+    transition: color 0.4s var(--ease-out), transform 0.7s var(--ease-out);
+  }
+  .s-text { max-width: 40ch; color: var(--ash); transition: color 0.4s var(--ease-out); }
+  .service:hover .s-title { color: var(--white); transform: translateX(10px); }
+  .service:hover :is(.s-num, .s-text) { color: var(--bone); }
+
+  .about-text {
+    max-width: 34ch;
+    font-size: var(--t-xl); font-weight: 500; line-height: 1.3; letter-spacing: -0.01em;
+    color: var(--bone);
+  }
+
+  /* lagani ulazak sekcija pri skrolanju; bez JS-a sve je odmah vidljivo */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.9s var(--ease-out), transform 1.1s var(--ease-out); }
+    .reveal.is-in { opacity: 1; transform: none; }
+  }
+
+  @media (max-width: 860px) {
+    .service { grid-template-columns: 2.5rem minmax(0, 1fr); }
+    .s-text { grid-column: 2; }
+  }
+  @media (max-width: 560px) {
+    .sec-head { flex-direction: column; align-items: flex-start; }
+    .sec-aside { text-align: left; }
+  }
+</style>
+
+<script>
+  function reveal() {
+    const els = document.querySelectorAll<HTMLElement>('.reveal:not(.is-in)');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('is-in');
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    els.forEach((el) => io.observe(el));
+    document.addEventListener('astro:before-swap', () => io.disconnect(), { once: true });
+  }
+  document.addEventListener('astro:page-load', reveal);
+</script>

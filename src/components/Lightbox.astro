@@ -1,0 +1,242 @@
+---
+// Jedan lightbox za fotke, vizuale i videe. Stavke galerije su <button class="g-item" data-full ...>.
+---
+<dialog class="lb" id="lb" aria-label="Pregled rada">
+  <div class="lb-bg"></div>
+  <div class="lb-stage"></div>
+  <p class="lb-cap"><span class="lb-alt"></span><a class="lb-src" target="_blank" rel="noopener" hidden></a><span class="lb-n tc"></span></p>
+  <button class="lb-btn lb-close" type="button" aria-label="Zatvori pregled">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none" /></svg>
+  </button>
+  <button class="lb-btn lb-prev" type="button" aria-label="Prethodni rad">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.6" fill="none" /></svg>
+  </button>
+  <button class="lb-btn lb-next" type="button" aria-label="Sljedeći rad">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.6" fill="none" /></svg>
+  </button>
+</dialog>
+
+<style>
+  .lb {
+    position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+    margin: 0; padding: 0; border: 0; background: transparent; color: var(--bone);
+    overflow: hidden;
+  }
+  .lb::backdrop { background: transparent; }
+  .lb-bg { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.94); opacity: 0; }
+  .lb-stage { position: absolute; inset: 0; touch-action: pan-y; }
+  .lb-stage :global(.lb-media) {
+    position: absolute; top: 0; left: 0;
+    border-radius: var(--r-img);
+    object-fit: cover;
+    will-change: transform;
+    user-select: none; -webkit-user-drag: none;
+    background: var(--graphite);
+  }
+  .lb-stage :global(div.lb-media) { overflow: hidden; }
+  .lb-stage :global(.lb-embed-poster), .lb-stage :global(.lb-embed-frame) {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover;
+  }
+  .lb-stage :global(.lb-embed-frame) { opacity: 0; transition: opacity 0.5s ease; background: #000; }
+  .lb-stage :global(.lb-embed-frame.is-ready) { opacity: 1; }
+  .lb-cap {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: 1rem var(--gutter) 1.25rem;
+    font-size: var(--t-xs); color: var(--ash);
+    opacity: 0;
+  }
+  .lb-src { margin-left: auto; color: var(--bone); white-space: nowrap; transition: color 0.3s; }
+  .lb-src:hover { color: var(--white); }
+  .lb-btn {
+    position: absolute; display: grid; place-items: center;
+    width: 48px; height: 48px; border-radius: 999px;
+    background: rgba(22, 22, 22, 0.6);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--white);
+    opacity: 0;
+    transition: background-color 0.3s, transform 0.3s var(--ease-out);
+  }
+  .lb-btn:hover { background: rgba(60, 60, 60, 0.7); }
+  .lb-btn:active { transform: scale(0.94); }
+  .lb-close { top: 16px; right: 16px; }
+  .lb-prev { left: 16px; top: 50%; margin-top: -24px; }
+  .lb-next { right: 16px; top: 50%; margin-top: -24px; }
+  @media (max-width: 720px) {
+    .lb-prev, .lb-next { top: auto; bottom: 56px; margin-top: 0; }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  type Item = HTMLElement & { dataset: { full: string; w: string; h: string; kind?: string; video?: string; embed?: string; href?: string; platform?: string; alt: string } };
+
+  function setup() {
+    const lb = document.getElementById('lb') as HTMLDialogElement | null;
+    const items = [...document.querySelectorAll<Item>('.g-item[data-full]')]; // vanjski videi (linkovi) nisu u lightboxu
+    if (!lb || !items.length) return;
+
+    const bg = lb.querySelector<HTMLElement>('.lb-bg')!;
+    const stage = lb.querySelector<HTMLElement>('.lb-stage')!;
+    const cap = lb.querySelector<HTMLElement>('.lb-cap')!;
+    const altEl = lb.querySelector<HTMLElement>('.lb-alt')!;
+    const nEl = lb.querySelector<HTMLElement>('.lb-n')!;
+    const srcEl = lb.querySelector<HTMLAnchorElement>('.lb-src')!;
+    const btns = [...lb.querySelectorAll<HTMLElement>('.lb-btn')];
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let idx = 0, cur: HTMLElement | null = null, busy = false;
+    const ac = new AbortController();
+    document.addEventListener('astro:before-swap', () => ac.abort(), { once: true });
+
+    const fit = (it: Item) => {
+      const w = Number(it.dataset.w), h = Number(it.dataset.h);
+      const pad = innerWidth < 720 ? 12 : 64;
+      const maxW = innerWidth - pad * 2, maxH = innerHeight - (innerWidth < 720 ? 150 : 128);
+      const s = Math.min(maxW / w, maxH / h);
+      const fw = w * s, fh = h * s;
+      return { x: (innerWidth - fw) / 2, y: (innerHeight - fh) / 2 - 8, w: fw, h: fh };
+    };
+    const thumbRect = (it: Item) => {
+      const media = it.querySelector('img, video') ?? it;
+      return media.getBoundingClientRect();
+    };
+
+    const makeMedia = (it: Item) => {
+      const box = fit(it);
+      let el: HTMLElement;
+      if (it.dataset.kind === 'video') {
+        const v = document.createElement('video');
+        v.src = it.dataset.video!; v.controls = true; v.playsInline = true; v.autoplay = true;
+        v.poster = it.dataset.full;
+        el = v;
+      } else if (it.dataset.kind === 'embed') {
+        // YouTube/TikTok player: sličica odmah, iframe se učita preko nje (tek na klik, ne s galerijom)
+        const wrap = document.createElement('div');
+        const poster = document.createElement('img');
+        poster.src = it.querySelector('img')?.currentSrc || it.dataset.full; poster.alt = '';
+        poster.className = 'lb-embed-poster';
+        const f = document.createElement('iframe');
+        f.src = it.dataset.embed!; f.title = it.dataset.alt; f.className = 'lb-embed-frame';
+        f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+        f.allowFullscreen = true;
+        f.addEventListener('load', () => f.classList.add('is-ready'), { once: true });
+        wrap.append(poster, f);
+        el = wrap;
+      } else {
+        const img = document.createElement('img');
+        // odmah prikaži već učitanu sličicu, pa zamijeni većom verzijom
+        img.src = it.querySelector('img')?.currentSrc || it.dataset.full;
+        const full = new Image();
+        full.src = it.dataset.full;
+        full.decode().then(() => { img.src = full.src; }).catch(() => {});
+        img.alt = it.dataset.alt; img.draggable = false;
+        el = img;
+      }
+      el.className = 'lb-media';
+      Object.assign(el.style, { width: `${box.w}px`, height: `${box.h}px` });
+      gsap.set(el, { x: box.x, y: box.y });
+      stage.appendChild(el);
+      return el;
+    };
+
+    const label = (i: number) => {
+      altEl.textContent = items[i].dataset.alt;
+      nEl.textContent = `${i + 1} / ${items.length}`;
+      // ako player ne radi (blokirani kolačići, autor zabranio embed), uvijek postoji put do originala
+      const { href, platform } = items[i].dataset;
+      srcEl.hidden = !href;
+      if (href) { srcEl.href = href; srcEl.textContent = `Otvori na ${platform}u ↗`; }
+    };
+
+    const open = (i: number) => {
+      if (busy) return;
+      idx = i; busy = true;
+      const it = items[i];
+      lb.showModal();
+      document.documentElement.style.overflow = 'hidden';
+      label(i);
+      cur = makeMedia(it);
+      const box = fit(it), r = thumbRect(it);
+      const d = reduce ? 0 : 0.75;
+      gsap.fromTo(cur,
+        { x: r.left, y: r.top, scaleX: r.width / box.w, scaleY: r.height / box.h, transformOrigin: '0 0' },
+        { x: box.x, y: box.y, scaleX: 1, scaleY: 1, duration: d, ease: 'expo.out', onComplete: () => { busy = false; } });
+      gsap.to(bg, { opacity: 1, duration: d * 0.6, ease: 'power2.out' });
+      gsap.to([cap, ...btns], { opacity: 1, duration: 0.4, delay: d * 0.4 });
+      it.style.visibility = 'hidden';
+    };
+
+    const close = () => {
+      if (busy || !cur) return;
+      busy = true;
+      const it = items[idx], r = thumbRect(it), box = fit(it);
+      const onScreen = r.bottom > 0 && r.top < innerHeight;
+      const d = reduce ? 0 : 0.6;
+      const el = cur;
+      if (el instanceof HTMLVideoElement) el.pause();
+      gsap.to([cap, ...btns], { opacity: 0, duration: 0.2 });
+      gsap.to(bg, { opacity: 0, duration: d, ease: 'power2.inOut' });
+      const done = () => {
+        el.remove(); cur = null; busy = false;
+        it.style.visibility = '';
+        lb.close();
+        document.documentElement.style.overflow = '';
+        it.focus({ preventScroll: true });
+      };
+      if (onScreen) {
+        gsap.to(el, { x: r.left, y: r.top, scaleX: r.width / box.w, scaleY: r.height / box.h, duration: d, ease: 'expo.inOut', onComplete: done });
+      } else {
+        gsap.to(el, { opacity: 0, scale: 0.92, duration: d * 0.7, ease: 'power2.in', onComplete: done });
+      }
+    };
+
+    const go = (dir: 1 | -1) => {
+      if (busy || !cur) return;
+      busy = true;
+      const prevItem = items[idx];
+      const old = cur;
+      if (old instanceof HTMLVideoElement) old.pause();
+      idx = (idx + dir + items.length) % items.length;
+      const it = items[idx];
+      label(idx);
+      prevItem.style.visibility = '';
+      it.style.visibility = 'hidden';
+      const box = fit(it);
+      cur = makeMedia(it);
+      const d = reduce ? 0 : 0.6;
+      gsap.to(old, { x: `-=${dir * 90}`, opacity: 0, duration: d * 0.8, ease: 'power3.in', onComplete: () => old.remove() });
+      gsap.fromTo(cur, { x: box.x + dir * 120, opacity: 0 }, { x: box.x, opacity: 1, duration: d, delay: d * 0.25, ease: 'expo.out', onComplete: () => { busy = false; } });
+    };
+
+    items.forEach((it, i) => it.addEventListener('click', () => open(i)));
+    lb.querySelector('.lb-close')!.addEventListener('click', close);
+    lb.querySelector('.lb-prev')!.addEventListener('click', () => go(-1));
+    lb.querySelector('.lb-next')!.addEventListener('click', () => go(1));
+    bg.addEventListener('click', close);
+    lb.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
+    lb.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    });
+
+    // swipe na mobitelu
+    let sx = 0, sy = 0;
+    stage.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
+    stage.addEventListener('pointerup', (e) => {
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+      else if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && e.target === stage) close();
+    });
+
+    addEventListener('resize', () => {
+      if (!cur) return;
+      const box = fit(items[idx]);
+      Object.assign(cur.style, { width: `${box.w}px`, height: `${box.h}px` });
+      gsap.set(cur, { x: box.x, y: box.y });
+    }, { signal: ac.signal });
+  }
+
+  document.addEventListener('astro:page-load', setup);
+</script>

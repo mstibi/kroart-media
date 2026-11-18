@@ -1,0 +1,201 @@
+---
+import { LOGO_MAIN, LOGO_PLAY, LOGO_DOTS, LOGO_DOT_R } from '../data/logo';
+
+// Logo se reže na N vertikalnih traka; svaka traka počinje kao klip na timelineu.
+const N = 12;
+const X0 = 230, W = 712, CY = 520;
+const sw = W / N;
+const lanes = [470, 520, 570];
+const lanePattern = [1, 0, 2, 1, 2, 0, 1, 0, 2, 1, 0, 2];
+// boje klipova uzete iz radova (magenta s koncerata, tungsten, tirkiz, padel plava, crvena, zelena)
+const colors = ['#b0238f', '#e0902a', '#1f9a8a', '#3a7bd5', '#c8322b', '#2f8f4e'];
+const slices = Array.from({ length: N }, (_, i) => ({
+  x: X0 + i * sw,
+  lane: lanes[lanePattern[i]],
+  color: colors[(i * 5) % colors.length],
+}));
+const words = 'Fotografija, videoprodukcija, montaža i vođenje društvenih mreža za brendove koji žele biti viđeni. Izrađujemo i web stranice.'.split(' ');
+const mutedFrom = words.indexOf('Izrađujemo');
+---
+<section class="hero" id="hero" data-state="pre" aria-labelledby="hero-title">
+  <noscript><style>.hero[data-state="pre"] .stage, .hero[data-state="pre"] .tagline { visibility: visible !important; } .clips, .lanes, .playhead { display: none; }</style></noscript>
+  <h1 id="hero-title" class="sr-only">KroArt Media</h1>
+
+  <p class="tagline">
+    {words.map((w, i) => <span class:list={['w', { muted: i >= mutedFrom }]}><span>{w}</span></span>)}
+  </p>
+
+  <div class="mark">
+  <svg class="stage" viewBox="100 380 972 400" aria-hidden="true" focusable="false">
+    <defs>
+      <path id="ka" d={LOGO_MAIN} fill-rule="evenodd" />
+      <mask id="ka-holes" maskUnits="userSpaceOnUse" x="100" y="250" width="972" height="560">
+        <rect x="100" y="250" width="972" height="560" fill="#fff" />
+        {LOGO_DOTS.map(([cx, cy]) => <circle class="dot" cx={cx} cy={cy} r={LOGO_DOT_R} fill="#000" />)}
+      </mask>
+      {slices.map((s, i) => (
+        <clipPath id={`ks-${i}`}><rect x={s.x - 0.5} y="270" width={sw + 1} height="500" /></clipPath>
+      ))}
+    </defs>
+
+    <g class="lanes">
+      {lanes.map((y) => <rect class="lane" x="100" y={y - 19} width="972" height="38" rx="4" />)}
+    </g>
+
+    <g class="clips">
+      {slices.map((s) => (
+        <rect class="clip" x={s.x + 2} y={s.lane - 15} width={sw - 4} height="30" rx="5" fill={s.color} />
+      ))}
+    </g>
+
+    <g class="logo" fill="#fff" mask="url(#ka-holes)">
+      {slices.map((s, i) => (
+        <g class="slice" clip-path={`url(#ks-${i})`} data-dy={s.lane - CY} data-x={s.x + sw / 2}>
+          <use href="#ka" />
+        </g>
+      ))}
+      <path class="play" d={LOGO_PLAY} />
+    </g>
+
+    <g class="playhead">
+      <path d="M -9 392 h 18 v 10 l -9 9 l -9 -9 Z" fill="#fff" />
+      <rect x="-0.75" y="405" width="1.5" height="360" fill="#fff" />
+    </g>
+  </svg>
+
+  <p class="tc timecode" aria-hidden="true">00:00:00:00</p>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center; column-gap: clamp(2rem, 5vw, 6rem);
+    padding: 6rem max(var(--gutter), (100% - var(--max)) / 2 + var(--gutter)) 4rem;
+    overflow: hidden;
+  }
+  .mark { display: flex; flex-direction: column; align-items: center; will-change: transform; }
+  .stage { width: 100%; height: auto; overflow: visible; }
+  .lane { fill: rgba(255, 255, 255, 0.035); }
+  .timecode {
+    font-size: var(--t-xs); letter-spacing: 0.08em; color: var(--bone);
+    margin-top: 0.75rem;
+    transition: color 1.2s var(--ease-out);
+  }
+  .timecode.is-done { color: var(--ash); }
+  .tagline {
+    max-width: 19ch;
+    font-size: var(--t-xl);
+    line-height: 1.22;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--white);
+  }
+  .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; }
+  .w > span { display: inline-block; }
+  .w { margin-right: 0.27em; }
+  .w.muted { color: var(--ash); }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: minmax(0, 1fr); align-content: center; row-gap: 2.5rem; }
+    .mark { order: -1; width: min(560px, 112%); justify-self: center; }
+    .tagline { font-size: var(--t-l); max-width: 22ch; }
+  }
+
+  /* do pokretanja animacije sakrij scenu, da nema bljeska statičnog stanja */
+  .hero[data-state="pre"] .stage, .hero[data-state="pre"] .tagline { visibility: hidden; }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  const FPS = 25;
+  const tcFormat = (t: number) => {
+    const f = Math.floor(t * FPS);
+    const ff = f % FPS, s = Math.floor(f / FPS) % 60, m = Math.floor(f / FPS / 60);
+    return `00:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:${String(ff).padStart(2, '0')}`;
+  };
+
+  function intro() {
+    const hero = document.getElementById('hero');
+    if (!hero) return;
+    const q = <T extends Element>(s: string) => [...hero.querySelectorAll<T>(s)];
+    const lanes = q<SVGRectElement>('.lane');
+    const clips = q<SVGRectElement>('.clip');
+    const slices = q<SVGGElement>('.slice');
+    const play = hero.querySelector<SVGPathElement>('.play')!;
+    const dots = q<SVGCircleElement>('.dot');
+    const head = hero.querySelector<SVGGElement>('.playhead')!;
+    const tc = hero.querySelector<HTMLElement>('.timecode')!;
+    const words = q<HTMLElement>('.w > span');
+    const mark = hero.querySelector<HTMLElement>('.mark')!;
+
+    // logo se slaže u sredini hera, a zatim klizi na svoje mjesto u rasporedu
+    const hr = hero.getBoundingClientRect(), mr = mark.getBoundingClientRect();
+    const desktop = innerWidth > 860;
+    gsap.set(mark, {
+      x: hr.left + hr.width / 2 - (mr.left + mr.width / 2),
+      y: hr.top + hr.height / 2 - (mr.top + mr.height / 2),
+      scale: desktop ? 1.15 : 1,
+    });
+
+    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+
+    // 1) trake i klipovi ulijeću kao na timelineu
+    tl.from(lanes, { scaleX: 0, transformOrigin: '50% 50%', duration: 0.9, stagger: 0.08, ease: 'expo.inOut' }, 0);
+    tl.from(clips, { x: () => gsap.utils.random(260, 520), opacity: 0, duration: 0.9, stagger: { each: 0.035, from: 'random' } }, 0.25);
+
+    // logo trake počinju spljoštene na visini svog klipa
+    slices.forEach((s) => gsap.set(s, { y: Number(s.dataset.dy), scaleY: 0.065, opacity: 0, svgOrigin: `${s.dataset.x} 520` }));
+    gsap.set(play, { scale: 0, rotation: -25, transformOrigin: '40% 50%' });
+    gsap.set(dots, { attr: { r: 0 } });
+    gsap.set(head, { x: 150, opacity: 0 });
+    gsap.set(words, { yPercent: 110, opacity: 0 });
+
+    // 2) playhead prolazi; gdje prođe, klip se "reže" u traku loga
+    const sweepStart = 1.05, sweep = 1.0, fromX = 150, toX = 1010;
+    tl.to(head, { opacity: 1, duration: 0.2, ease: 'none' }, sweepStart - 0.15);
+    tl.to(head, { x: toX, duration: sweep, ease: 'power2.inOut' }, sweepStart);
+    slices.forEach((s, i) => {
+      const x = Number(s.dataset.x);
+      // inverz power2.inOut: u kojem trenutku playhead stiže do x
+      const p = (x - fromX) / (toX - fromX);
+      const t = sweepStart + sweep * (p < 0.5 ? Math.sqrt(p / 2) : 1 - Math.sqrt((1 - p) / 2));
+      tl.to(clips[i], { fill: '#ffffff', duration: 0.08, ease: 'none' }, t - 0.04);
+      tl.to(clips[i], { scaleY: 0, opacity: 0, transformOrigin: '50% 50%', duration: 0.35, ease: 'power3.in' }, t + 0.02);
+      tl.to(s, { y: 0, scaleY: 1, opacity: 1, duration: 0.75, ease: 'back.out(1.5)' }, t);
+    });
+    tl.to(head, { opacity: 0, duration: 0.35, ease: 'power1.out' }, sweepStart + sweep);
+    tl.to(lanes, { opacity: 0, duration: 0.6, ease: 'power1.out' }, sweepStart + sweep - 0.1);
+
+    // 3) play gumb "klikne", perforacije se probuše jedna po jedna
+    const end = sweepStart + sweep;
+    tl.to(play, { scale: 1, rotation: 0, duration: 0.9, ease: 'elastic.out(1.1, 0.55)' }, end - 0.05);
+    tl.to(dots, { attr: { r: 12.6 }, duration: 0.45, stagger: 0.07, ease: 'back.out(2.5)' }, end + 0.1);
+
+    // 4) logo odlazi desno, rečenica ulazi slijeva
+    const move = end + 0.75;
+    tl.to(mark, { x: 0, y: 0, scale: 1, duration: 1.25, ease: 'expo.inOut', clearProps: 'transform' }, move);
+    tl.to(words, { yPercent: 0, opacity: 1, duration: 1.1, stagger: 0.02 }, move + 0.5);
+
+    // timecode prati vrijeme timelinea do trenutka kad se logo složi
+    const stopAt = end + 0.5;
+    tl.eventCallback('onUpdate', () => { tc.textContent = tcFormat(Math.min(tl.time(), stopAt)); });
+    tl.call(() => tc.classList.add('is-done'), [], stopAt);
+    // kad je logo složen, jedan cijeli oblik umjesto 12 traka (bez tankih šavova između njih)
+    tl.call(() => slices.forEach((s, i) => (i ? s.setAttribute('display', 'none') : s.removeAttribute('clip-path'))), [], end + 0.8);
+
+    const seen = (() => { try { return sessionStorage.getItem('ka-intro') === '1'; } catch { return false; } })();
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (seen || reduce) tl.progress(1);
+    hero.dataset.state = 'run';
+    try { sessionStorage.setItem('ka-intro', '1'); } catch {}
+
+    if (import.meta.env.DEV) (window as any).__tl = tl;
+    document.addEventListener('astro:before-swap', () => tl.kill(), { once: true });
+  }
+
+  document.addEventListener('astro:page-load', intro);
+</script>

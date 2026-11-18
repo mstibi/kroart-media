@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import GalleryPage from '../components/GalleryPage.astro';
+import { visuals } from '../data/work';
+---
+<Base title="Vizuali | KroArt Media" description="Objave, storyji i plakati za društvene mreže koje je dizajnirao KroArt Media.">
+  <GalleryPage slug="vizuali" kind="visual" items={visuals}
+    intro="Objave, storyji i plakati za društvene mreže, složeni tako da se brend prepozna u prvoj sekundi." />
+</Base>

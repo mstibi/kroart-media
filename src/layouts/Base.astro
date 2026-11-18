@@ -1,0 +1,60 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/Header.astro';
+import { CONTACT_EMAIL, INSTAGRAM } from '../data/work';
+import '../styles/global.css';
+
+interface Props { title?: string; description?: string }
+const {
+  title = 'KroArt Media | Fotografija, videoprodukcija i društvene mreže',
+  description = 'KroArt Media je multimedijska agencija iz Osijeka: fotografija, videoprodukcija, video montaža, vođenje društvenih mreža i izrada web stranica.',
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const year = new Date().getFullYear();
+---
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="hr_HR" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <ClientRouter />
+  </head>
+  <body>
+    <a href="#main" class="skip btn btn-solid">Preskoči na sadržaj</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="foot wrap">
+      <span>© {year} KroArt Media, Osijek</span>
+      <span class="foot-links">
+        <a href={INSTAGRAM} rel="noopener" target="_blank">Instagram</a>
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+      </span>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .skip { position: fixed; left: 12px; top: -80px; z-index: 100; transition: top 0.3s var(--ease-out); }
+  .skip:focus { top: 12px; }
+  .foot {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem;
+    padding-block: 2.5rem 2rem;
+    border-top: 1px solid var(--line);
+    font-size: var(--t-xs); color: var(--ash);
+  }
+  .foot-links { display: flex; gap: 1.5rem; }
+  .foot a { transition: color 0.3s; }
+  .foot a:hover { color: var(--white); }
+</style>

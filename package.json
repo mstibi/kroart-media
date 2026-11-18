@@ -1,0 +1,17 @@
+{
+  "name": "kroart-media",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "media": "bash scripts/prepare-media.sh"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "astro": "^6.4.8",
+    "gsap": "^3.15.1"
+  }
+}
