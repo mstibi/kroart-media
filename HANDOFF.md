@@ -27,7 +27,11 @@ Pazi: ako dev server "ne vidi" izmjene, provjeri da nema starog procesa na 4321 
 - Fotke: row-order masonry (CSS grid + `cqi`, `--span` po omjeru slike, `dense`). Redoslijed u `photos` = koncerti po izvođaču + prijelaz boja, pa portreti, pa prostori.
 - Carousel (Suradnje): transform + pointer drag, 3 kopije liste (sve klikabilne, samo srednja u tab redoslijedu). NE vraćati `inert` na kopije (zbog toga klik nije radio).
 - Carousel nema gumb za pauzu (Stibi tako htio, 2026-11-20); staje na hover, fokus, drag i otvorenu karticu.
-- Timeline (`Timeline.astro`, u svim galerijama): čisto ukrasna okomita traka uz desni rub (ravnalo, bijeli "odgledani" dio, playhead, timecode uz playhead). Bez teksta, klikova i navigacije (Stibi tako htio, 2026-11-20; verzije s grupama i scrubbingom odbačene kao nepotrebne). Timecode se vidi od 1440 px, traka od 761 px. Na naslovnici je nema. Timecode format dijeli s Herom (`src/scripts/timecode.ts`).
+- Hero (2026-11-20, Stibi potvrdio): "● REC · KroArt Media, Osijek" (trepće), display naslov "Za brendove koji žele biti viđeni." (zadnja riječ u obrisu), usluge kao klipovi s obojenim lijevim rubom (boje iz intro animacije), gumb "Pogledaj radove" sa strelicom koja na hover propada. Od 1200 px stupci 1:1 da logo bude veći od teksta.
+- Ugrađeni scrollbar je skriven na cijeloj stranici (Stibi tako htio, 2026-11-20); položaj pokazuje timeline.
+- Timeline (`Timeline.astro`, naslovnica i sve galerije): čisto ukrasna okomita traka uz desni rub (ravnalo, bijeli "odgledani" dio, playhead, timecode uz playhead). Bez teksta, klikova i navigacije (Stibi tako htio, 2026-11-20; verzije s grupama i scrubbingom odbačene kao nepotrebne). Timecode se vidi od 1440 px, traka od 761 px. Pojavi se kad hero ili naslovna slika galerije ode s ekrana. Timecode format dijeli s Herom (`src/scripts/timecode.ts`).
+- Lightbox filmstrip: sličice cijele galerije ispod rada (klon `<picture>` iz mreže, `sizes=120px`), klik skače na rad. Na mobitelu nema strelica (swipe + filmstrip).
+- SEO: naslovi i opisi po stranici, `sr-only` h1 s Osijekom, OG slika `public/og.jpg` (1200×630, logo preko Jale fotke; originali logotipa u `raw/brand/`), `ProfessionalService` JSON-LD na naslovnici, `src/pages/sitemap.xml.ts`, `public/robots.txt`, 404 `noindex`. Smoke test to provjerava.
 - Recenzije: inicijali u avataru, ispod firma + uloga. Tekst doslovno, kvačice ispravljene, "je****ca" ostaje.
 
 ## Odluke od Stibija (ne mijenjati bez pitanja)
@@ -42,7 +46,8 @@ Pazi: ako dev server "ne vidi" izmjene, provjeri da nema starog procesa na 4321 
 2. Tekstovi koje je pisao Claude, a KroArt treba potvrditi: opisi usluga, `tag`/`did` klijenata u `work.ts`, naslovi vanjskih videa, alt tekstovi.
 3. Web3Forms ključ (`PUBLIC_WEB3FORMS_KEY`) za kontakt formu: Stibi ga mora sam nabaviti (besplatno).
 4. Repo: privatni https://github.com/mstibi/kroart-media (main). Ostaje Cloudflare Pages (build `npm run build`, output `dist`, `NODE_VERSION=22`). Commiti bez AI atribucije.
-5. Mogući dodaci o kojima se pričalo: filter po klijentu u Videima; ostatak "O nama" teksta (sad samo o montaži).
+5. Nakon deploya: u Cloudflare Pages uključiti Web Analytics (jedan klik, bez koda i kolačića); u Google Search Console dodati domenu i poslati `https://kroart.media/sitemap.xml`.
+6. Mogući dodaci o kojima se pričalo: filter po klijentu u Videima; ostatak "O nama" teksta (sad samo o montaži); prije/poslije slider (treba sirovi i gotov kadar od KroArta).
 
 ## Backup
 - `.backup/v1/`: hero/global.css/Base/Header/index/work.ts iz ranijih verzija (za revert).

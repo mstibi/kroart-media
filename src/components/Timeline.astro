@@ -1,5 +1,5 @@
 ---
-// Ukrasni montažni timeline uz desni rub galerije: ravnalo s crticama, playhead i timecode prate scroll.
+// Ukrasni montažni timeline uz desni rub (naslovnica i galerije), umjesto scrollbara: ravnalo s crticama, playhead i timecode prate scroll.
 // Nema navigacije ni teksta, pa je skriven čitačima ekrana i ne prima klikove.
 ---
 <div class="tl" aria-hidden="true" data-tl>
@@ -18,7 +18,7 @@
     transform: translateY(-50%);
     transition: opacity 0.6s var(--ease-out), transform 0.7s var(--ease-out);
   }
-  /* pojavi se tek kad naslovna slika galerije ode s ekrana */
+  /* pojavi se tek kad hero ili naslovna slika galerije ode s ekrana */
   .tl:not(.is-on) { opacity: 0; transform: translate(10px, -50%); }
 
   .tl-track { position: relative; height: 100%; }

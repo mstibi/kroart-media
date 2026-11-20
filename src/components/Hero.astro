@@ -14,16 +14,27 @@ const slices = Array.from({ length: N }, (_, i) => ({
   lane: lanes[lanePattern[i]],
   color: colors[(i * 5) % colors.length],
 }));
-const words = 'Fotografija, videoprodukcija, montaža i vođenje društvenih mreža za brendove koji žele biti viđeni. Izrađujemo i web stranice.'.split(' ');
-const mutedFrom = words.indexOf('Izrađujemo');
+const words = 'Za brendove koji žele biti viđeni.'.split(' ');
+// usluge kao klipovi na timelineu, u bojama klipova iz intro animacije
+const services = [['Fotografija', colors[0]], ['Videoprodukcija', colors[1]], ['Montaža', colors[2]], ['Društvene mreže', colors[3]]];
 ---
 <section class="hero" id="hero" data-state="pre" aria-labelledby="hero-title">
-  <noscript><style>.hero[data-state="pre"] .stage, .hero[data-state="pre"] .tagline { visibility: visible !important; } .clips, .lanes, .playhead { display: none; }</style></noscript>
-  <h1 id="hero-title" class="sr-only">KroArt Media</h1>
+  <noscript><style>.hero[data-state="pre"] .stage, .hero[data-state="pre"] .copy { visibility: visible !important; } .clips, .lanes, .playhead { display: none; }</style></noscript>
+  <h1 id="hero-title" class="sr-only">KroArt Media, fotografija i videoprodukcija iz Osijeka</h1>
 
-  <p class="tagline">
-    {words.map((w, i) => <span class:list={['w', { muted: i >= mutedFrom }]}><span>{w}</span></span>)}
-  </p>
+  <div class="copy">
+    <p class="eyebrow tc h-in"><span class="rec" aria-hidden="true"></span>REC · KroArt Media, Osijek</p>
+    <p class="tagline display">
+      {/* pravi razmak između riječi, inače se tekst kopira i čita slijepljen */}
+      {words.map((w) => <><span class="w"><span>{w}</span></span>{' '}</>)}
+    </p>
+    <ul class="svc h-in" aria-label="Usluge">
+      {services.map(([s, c]) => <li style={`--c: ${c}`}>{s}</li>)}
+    </ul>
+    <a href="#projekti" class="btn btn-solid go h-in">Pogledaj radove
+      <span class="go-arw"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+    </a>
+  </div>
 
   <div class="mark">
   <svg class="stage" viewBox="100 380 972 400" aria-hidden="true" focusable="false">
@@ -71,11 +82,13 @@ const mutedFrom = words.indexOf('Izrađujemo');
   .hero {
     position: relative;
     min-height: 100svh;
-    display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     align-items: center; column-gap: clamp(2rem, 5vw, 6rem);
     padding: 6rem max(var(--gutter), (100% - var(--max)) / 2 + var(--gutter)) 4rem;
     overflow: hidden;
   }
+  /* na širokim ekranima naslov stane i u pola širine, pa logo dobiva više mjesta */
+  @media (min-width: 1200px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
   .mark { display: flex; flex-direction: column; align-items: center; will-change: transform; }
   .stage { width: 100%; height: auto; overflow: visible; }
   .lane { fill: rgba(255, 255, 255, 0.035); }
@@ -85,27 +98,51 @@ const mutedFrom = words.indexOf('Izrađujemo');
     transition: color 1.2s var(--ease-out);
   }
   .timecode.is-done { color: var(--ash); }
+  .copy { display: grid; justify-items: start; gap: 1.6rem; }
+
+  /* "REC" kao na kameri: crvena točka trepće */
+  .eyebrow { display: inline-flex; align-items: center; gap: 0.6em; font-size: var(--t-xs); letter-spacing: 0.12em; color: var(--ash); }
+  .rec { width: 0.6em; height: 0.6em; border-radius: 50%; background: #e5322d; box-shadow: 0 0 12px rgba(229, 50, 45, 0.7); animation: rec 1.6s steps(1) infinite; }
+  @keyframes rec { 50% { opacity: 0.15; } }
+
   .tagline {
-    max-width: 19ch;
-    font-size: var(--t-xl);
-    line-height: 1.22;
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    max-width: 12ch;
+    font-size: clamp(2.6rem, 1rem + 4.4vw, 4.6rem);
+    line-height: 1.02;
     color: var(--white);
   }
+  /* zadnja riječ ("viđeni.") samo u obrisu */
+  .tagline .w:last-of-type > span { color: transparent; -webkit-text-stroke: 1.5px var(--white); }
   .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; }
   .w > span { display: inline-block; }
-  .w { margin-right: 0.27em; }
-  .w.muted { color: var(--ash); }
+
+  .svc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .svc li {
+    padding: 0.45rem 0.85rem 0.45rem 0.95rem;
+    border-radius: 6px;
+    font-size: var(--t-xs); font-weight: 500; color: var(--bone);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 3px 0 0 var(--c), inset 0 0 0 1px var(--line);
+  }
+
+  /* strelica na hover "propadne" dolje i uđe odozgo, kao poziv na skrolanje */
+  .go-arw { display: inline-flex; overflow: hidden; }
+  .go:hover .go-arw svg, .go:focus-visible .go-arw svg { animation: drop 0.9s var(--ease-out) infinite; }
+  @keyframes drop {
+    0% { transform: translateY(0); }
+    40% { transform: translateY(120%); }
+    41% { transform: translateY(-120%); }
+    100% { transform: translateY(0); }
+  }
 
   @media (max-width: 860px) {
     .hero { grid-template-columns: minmax(0, 1fr); align-content: center; row-gap: 2.5rem; }
-    .mark { order: -1; width: min(560px, 112%); justify-self: center; }
-    .tagline { font-size: var(--t-l); max-width: 22ch; }
+    .mark { order: -1; width: min(520px, 100%); justify-self: center; }
+    .copy { gap: 1.25rem; }
   }
 
   /* do pokretanja animacije sakrij scenu, da nema bljeska statičnog stanja */
-  .hero[data-state="pre"] .stage, .hero[data-state="pre"] .tagline { visibility: hidden; }
+  .hero[data-state="pre"] .stage, .hero[data-state="pre"] .copy { visibility: hidden; }
 </style>
 
 <script>
@@ -124,6 +161,7 @@ const mutedFrom = words.indexOf('Izrađujemo');
     const head = hero.querySelector<SVGGElement>('.playhead')!;
     const tc = hero.querySelector<HTMLElement>('.timecode')!;
     const words = q<HTMLElement>('.w > span');
+    const extras = q<HTMLElement>('.h-in');
     const mark = hero.querySelector<HTMLElement>('.mark')!;
 
     // logo se slaže u sredini hera, a zatim klizi na svoje mjesto u rasporedu
@@ -147,6 +185,7 @@ const mutedFrom = words.indexOf('Izrađujemo');
     gsap.set(dots, { attr: { r: 0 } });
     gsap.set(head, { x: 150, opacity: 0 });
     gsap.set(words, { yPercent: 110, opacity: 0 });
+    gsap.set(extras, { y: 16, opacity: 0 });
 
     // 2) playhead prolazi; gdje prođe, klip se "reže" u traku loga
     const sweepStart = 1.05, sweep = 1.0, fromX = 150, toX = 1010;
@@ -172,7 +211,8 @@ const mutedFrom = words.indexOf('Izrađujemo');
     // 4) logo odlazi desno, rečenica ulazi slijeva
     const move = end + 0.75;
     tl.to(mark, { x: 0, y: 0, scale: 1, duration: 1.25, ease: 'expo.inOut', clearProps: 'transform' }, move);
-    tl.to(words, { yPercent: 0, opacity: 1, duration: 1.1, stagger: 0.02 }, move + 0.5);
+    tl.to(words, { yPercent: 0, opacity: 1, duration: 1.1, stagger: 0.04 }, move + 0.5);
+    tl.to(extras, { y: 0, opacity: 1, duration: 0.9, stagger: 0.1, clearProps: 'transform' }, move + 0.8);
 
     // timecode prati vrijeme timelinea do trenutka kad se logo složi
     const stopAt = end + 0.5;

@@ -5,6 +5,7 @@ import Panels from '../components/Panels.astro';
 import Contact from '../components/Contact.astro';
 import Clients from '../components/Clients.astro';
 import Reviews from '../components/Reviews.astro';
+import Timeline from '../components/Timeline.astro';
 
 const services = [
   { title: 'Fotografija i videoprodukcija', text: 'Snimamo koncerte, evente, reklame, portrete i prostore. Fotografija i video iz jedne ruke, spremni za objavu, tisak i web.' },
@@ -21,7 +22,7 @@ const services = [
     <div class="wrap">
       <header class="sec-head reveal">
         <h2 id="suradnje-t" class="sec-title display">Suradnje</h2>
-        <p class="sec-aside">Brendovi, klubovi i influenceri s kojima smo radili. Kliknite karticu za više.</p>
+        <p class="sec-aside">Brendovi, tvrtke i influenceri s kojima smo radili. Kliknite karticu za više.</p>
       </header>
     </div>
     <div class="reveal"><Clients /></div>
@@ -62,6 +63,7 @@ const services = [
   </section>
 
   <Contact />
+  <Timeline />
 </Base>
 
 <style>

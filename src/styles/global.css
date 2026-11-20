@@ -30,7 +30,9 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; background: var(--bg); scroll-behavior: smooth; scrollbar-gutter: stable; }
+/* bez ugrađenog scrollbara; položaj na stranici pokazuje timeline uz desni rub */
+html { -webkit-text-size-adjust: 100%; background: var(--bg); scroll-behavior: smooth; scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
 /* sidra iz headera ne smiju završiti ispod plutajućeg headera */
 [id] { scroll-margin-top: 96px; }
 body {

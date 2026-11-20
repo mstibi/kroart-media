@@ -5,6 +5,7 @@
   <div class="lb-bg"></div>
   <div class="lb-stage"></div>
   <p class="lb-cap"><span class="lb-alt"></span><a class="lb-src" target="_blank" rel="noopener" hidden></a><span class="lb-n tc"></span></p>
+  <div class="lb-strip" role="group" aria-label="Svi radovi"></div>
   <button class="lb-btn lb-close" type="button" aria-label="Zatvori pregled">
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none" /></svg>
   </button>
@@ -47,8 +48,31 @@
   .lb-stage :global(.lb-embed-error button), .lb-stage :global(.lb-embed-error a) {
     padding: 0.65rem 1rem; border: 1px solid var(--line); border-radius: 999px;
   }
-  .lb-cap {
+  /* filmstrip: sličice cijele galerije, klik skače na rad */
+  .lb-strip {
     position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; gap: 6px;
+    padding: 4px var(--gutter) 16px;
+    overflow-x: auto; scrollbar-width: none;
+    opacity: 0;
+  }
+  .lb-strip::-webkit-scrollbar { display: none; }
+  .lb-strip :global(.lb-thumb) {
+    flex: none; height: 52px; padding: 0; border: 0;
+    border-radius: 4px; overflow: hidden;
+    background: var(--graphite);
+    opacity: 0.4;
+    transition: opacity 0.3s, box-shadow 0.3s;
+  }
+  .lb-strip :global(.lb-thumb:first-child) { margin-left: auto; } /* centrirano dok stane, skrolabilno kad ne stane */
+  .lb-strip :global(.lb-thumb:last-child) { margin-right: auto; }
+  .lb-strip :global(.lb-thumb picture) { display: block; height: 100%; }
+  .lb-strip :global(.lb-thumb img) { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .lb-strip :global(.lb-thumb:hover) { opacity: 0.8; }
+  .lb-strip :global(.lb-thumb[aria-current]) { opacity: 1; box-shadow: inset 0 0 0 2px var(--white); }
+  .lb-strip :global(.lb-thumb:focus-visible) { outline: 2px solid var(--white); outline-offset: 2px; }
+  .lb-cap {
+    position: absolute; left: 0; right: 0; bottom: 72px;
     display: flex; justify-content: space-between; gap: 1rem;
     padding: 1rem var(--gutter) 1.25rem;
     font-size: var(--t-xs); color: var(--ash);
@@ -74,8 +98,10 @@
   .lb-prev { left: 16px; top: 50%; margin-top: -24px; }
   .lb-next { right: 16px; top: 50%; margin-top: -24px; }
   @media (max-width: 720px) {
-    .lb-prev, .lb-next { top: auto; bottom: 100px; margin-top: 0; }
-    .lb-cap { flex-wrap: wrap; gap: 0.35rem 1rem; padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+    .lb-prev, .lb-next { display: none; } /* na mobitelu swipe i filmstrip; strelice bi prekrile kontrole videa */
+    .lb-cap { flex-wrap: wrap; gap: 0.35rem 1rem; bottom: 58px; padding-bottom: 0.75rem; }
+    .lb-strip { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+    .lb-strip :global(.lb-thumb) { height: 42px; }
     .lb-alt { flex-basis: 100%; }
     .lb-src { margin-left: 0; }
     .lb-n { margin-left: auto; }
@@ -99,7 +125,9 @@
     const altEl = lb.querySelector<HTMLElement>('.lb-alt')!;
     const nEl = lb.querySelector<HTMLElement>('.lb-n')!;
     const srcEl = lb.querySelector<HTMLAnchorElement>('.lb-src')!;
+    const strip = lb.querySelector<HTMLElement>('.lb-strip')!;
     const btns = [...lb.querySelectorAll<HTMLElement>('.lb-btn')];
+    const chrome = [cap, strip, ...btns];
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let idx = 0, cur: HTMLElement | null = null, busy = false;
     let stopPlayer: (() => void) | undefined;
@@ -108,12 +136,34 @@
 
     const fit = (it: Item) => {
       const w = Number(it.dataset.w), h = Number(it.dataset.h);
-      const pad = innerWidth < 720 ? 12 : 64;
-      const maxW = innerWidth - pad * 2, maxH = innerHeight - (innerWidth < 720 ? 150 : 128);
+      const mobile = innerWidth < 720;
+      const pad = mobile ? 12 : 64, stripH = mobile ? 58 : 72; // mjesto za filmstrip ispod rada
+      const maxW = innerWidth - pad * 2, maxH = innerHeight - stripH - (mobile ? 150 : 128);
       const s = Math.min(maxW / w, maxH / h);
       const fw = w * s, fh = h * s;
-      return { x: (innerWidth - fw) / 2, y: (innerHeight - fh) / 2 - 8, w: fw, h: fh };
+      return { x: (innerWidth - fw) / 2, y: (innerHeight - stripH - fh) / 2 - 8, w: fw, h: fh };
     };
+
+    // filmstrip: klon <picture> iz mreže (isti AVIF/WebP), sizes smanjen da se učita najmanja verzija
+    const thumbs = items.map((it, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'lb-thumb';
+      b.setAttribute('aria-label', `Rad ${i + 1}: ${it.dataset.alt}`);
+      b.style.aspectRatio = `${it.dataset.w} / ${it.dataset.h}`;
+      const pic = (it.querySelector('picture') ?? it.querySelector('img'))?.cloneNode(true) as HTMLElement | undefined;
+      if (pic) {
+        pic.querySelectorAll('[sizes]').forEach((s) => s.setAttribute('sizes', '120px'));
+        const img = pic instanceof HTMLImageElement ? pic : pic.querySelector('img');
+        img?.removeAttribute('class');
+        img?.setAttribute('sizes', '120px');
+        img?.setAttribute('alt', '');
+        img?.setAttribute('loading', 'lazy');
+        b.append(pic);
+      }
+      b.addEventListener('click', () => { if (i !== idx) go(i > idx ? 1 : -1, i); });
+      strip.append(b);
+      return b;
+    });
     const thumbRect = (it: Item) => {
       const media = it.querySelector('img, video') ?? it;
       return media.getBoundingClientRect();
@@ -165,6 +215,9 @@
       const { href, platform } = items[i].dataset;
       srcEl.hidden = !href;
       if (href) { srcEl.href = href; srcEl.textContent = `Otvori na ${platform}u ↗`; }
+      thumbs.forEach((t, j) => (j === i ? t.setAttribute('aria-current', 'true') : t.removeAttribute('aria-current')));
+      const t = thumbs[i];
+      strip.scrollTo({ left: t.offsetLeft - (strip.clientWidth - t.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
     };
 
     const open = (i: number) => {
@@ -181,7 +234,7 @@
         { x: r.left, y: r.top, scaleX: r.width / box.w, scaleY: r.height / box.h, transformOrigin: '0 0' },
         { x: box.x, y: box.y, scaleX: 1, scaleY: 1, duration: d, ease: 'expo.out', onComplete: () => { busy = false; } });
       gsap.to(bg, { opacity: 1, duration: d * 0.6, ease: 'power2.out' });
-      gsap.to([cap, ...btns], { opacity: 1, duration: 0.4, delay: d * 0.4 });
+      gsap.to(chrome, { opacity: 1, duration: 0.4, delay: d * 0.4 });
       it.style.visibility = 'hidden';
     };
 
@@ -194,7 +247,7 @@
       const el = cur;
       stopPlayer?.(); stopPlayer = undefined;
       if (el instanceof HTMLVideoElement) el.pause();
-      gsap.to([cap, ...btns], { opacity: 0, duration: 0.2 });
+      gsap.to(chrome, { opacity: 0, duration: 0.2 });
       gsap.to(bg, { opacity: 0, duration: d, ease: 'power2.inOut' });
       const done = () => {
         el.remove(); cur = null; busy = false;
@@ -210,14 +263,14 @@
       }
     };
 
-    const go = (dir: 1 | -1) => {
+    const go = (dir: 1 | -1, to = (idx + dir + items.length) % items.length) => {
       if (busy || !cur) return;
       busy = true;
       const prevItem = items[idx];
       const old = cur;
       stopPlayer?.(); stopPlayer = undefined;
       if (old instanceof HTMLVideoElement) old.pause();
-      idx = (idx + dir + items.length) % items.length;
+      idx = to;
       const it = items[idx];
       label(idx);
       prevItem.style.visibility = '';

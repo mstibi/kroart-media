@@ -33,3 +33,19 @@ test('video gallery contains 20 works and six TikTok embeds', () => {
   assert.equal((html.match(/class="g-item(?: g-ext)?"/g) ?? []).length, 20);
   assert.equal((html.match(/data-platform="TikTok"/g) ?? []).length, 6);
 });
+
+test('SEO: sitemap lists every indexable page, each has canonical and share image, 404 is noindex', () => {
+  const sitemap = readFileSync(resolve(root, 'sitemap.xml'), 'utf8');
+  const listed = [...sitemap.matchAll(/<loc>https:\/\/kroart\.media([^<]*)<\/loc>/g)].map(([, path]) => path);
+  assert.deepEqual(listed, routes.filter((r) => r !== '/404.html'));
+  assert.match(readFileSync(resolve(root, 'robots.txt'), 'utf8'), /Sitemap: https:\/\/kroart\.media\/sitemap\.xml/);
+  for (const route of listed) {
+    const html = pages.get(route);
+    assert.match(html, new RegExp(`<link rel="canonical" href="https://kroart\.media${route}">`), route);
+    assert.match(html, /<meta property="og:image" content="https:\/\/kroart\.media\/og\.jpg">/, route);
+  }
+  assert.ok(existsSync(resolve(root, 'og.jpg')));
+  assert.match(pages.get('/404.html'), /<meta name="robots" content="noindex">/);
+  assert.doesNotMatch(pages.get('/404.html'), /rel="canonical"/);
+  JSON.parse(pages.get('/').match(/<script type="application\/ld\+json">([^<]*)<\/script>/)[1]);
+});

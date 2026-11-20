@@ -4,13 +4,30 @@ import Header from '../components/Header.astro';
 import { CONTACT_EMAIL, INSTAGRAM } from '../data/work';
 import '../styles/global.css';
 
-interface Props { title?: string; description?: string }
+interface Props { title?: string; description?: string; noindex?: boolean }
 const {
-  title = 'KroArt Media | Fotografija, videoprodukcija i društvene mreže',
+  title = 'KroArt Media | Fotografija, videoprodukcija i društvene mreže, Osijek',
   description = 'KroArt Media je multimedijska agencija iz Osijeka: fotografija, videoprodukcija, video montaža, vođenje društvenih mreža i izrada web stranica.',
+  noindex = false,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.jpg', Astro.site);
 const year = new Date().getFullYear();
+// podaci za Google (lokalna pretraga "videoprodukcija Osijek"), samo na naslovnici
+const business = Astro.url.pathname === '/' && JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: 'KroArt Media',
+  url: Astro.site!.href,
+  logo: new URL('/logo.jpg', Astro.site).href,
+  image: ogImage.href,
+  description,
+  email: CONTACT_EMAIL,
+  sameAs: [INSTAGRAM],
+  address: { '@type': 'PostalAddress', addressLocality: 'Osijek', addressCountry: 'HR' },
+  areaServed: 'Hrvatska',
+  knowsAbout: ['Fotografija', 'Videoprodukcija', 'Video montaža', 'Društvene mreže', 'Izrada web stranica'],
+});
 ---
 <!doctype html>
 <html lang="hr">
@@ -19,14 +36,22 @@ const year = new Date().getFullYear();
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#0a0a0c" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KroArt Media" />
     <meta property="og:locale" content="hr_HR" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Logo KroArt Media preko koncertne fotografije" />
+    <meta name="twitter:card" content="summary_large_image" />
+    {business && <script type="application/ld+json" set:html={business} />}
     <ClientRouter />
   </head>
   <body>
