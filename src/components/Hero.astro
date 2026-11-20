@@ -16,7 +16,7 @@ const slices = Array.from({ length: N }, (_, i) => ({
 }));
 const words = 'Za brendove koji žele biti viđeni.'.split(' ');
 // usluge kao klipovi na timelineu, u bojama klipova iz intro animacije
-const services = [['Fotografija', colors[0]], ['Videoprodukcija', colors[1]], ['Montaža', colors[2]], ['Društvene mreže', colors[3]]];
+const services = [['Fotografija', colors[0]], ['Videoprodukcija', colors[1]], ['Montaža', colors[2]], ['Društvene mreže', colors[3]], ['Web stranice', colors[5]]];
 ---
 <section class="hero" id="hero" data-state="pre" aria-labelledby="hero-title">
   <noscript><style>.hero[data-state="pre"] .stage, .hero[data-state="pre"] .copy { visibility: visible !important; } .clips, .lanes, .playhead { display: none; }</style></noscript>
@@ -32,7 +32,7 @@ const services = [['Fotografija', colors[0]], ['Videoprodukcija', colors[1]], ['
       {services.map(([s, c]) => <li style={`--c: ${c}`}>{s}</li>)}
     </ul>
     <a href="#projekti" class="btn btn-solid go h-in">Pogledaj radove
-      <span class="go-arw"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
     </a>
   </div>
 
@@ -125,15 +125,9 @@ const services = [['Fotografija', colors[0]], ['Videoprodukcija', colors[1]], ['
     box-shadow: inset 3px 0 0 var(--c), inset 0 0 0 1px var(--line);
   }
 
-  /* strelica na hover "propadne" dolje i uđe odozgo, kao poziv na skrolanje */
-  .go-arw { display: inline-flex; overflow: hidden; }
-  .go:hover .go-arw svg, .go:focus-visible .go-arw svg { animation: drop 0.9s var(--ease-out) infinite; }
-  @keyframes drop {
-    0% { transform: translateY(0); }
-    40% { transform: translateY(120%); }
-    41% { transform: translateY(-120%); }
-    100% { transform: translateY(0); }
-  }
+  /* jednostavno: gumb se na hover malo podigne, strelica ide zajedno s tekstom */
+  .go { transition: background-color 0.3s, transform 0.4s var(--ease-out); }
+  .go:hover { transform: translateY(-2px); }
 
   @media (max-width: 860px) {
     .hero { grid-template-columns: minmax(0, 1fr); align-content: center; row-gap: 2.5rem; }

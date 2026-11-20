@@ -80,6 +80,6 @@ const business = Astro.url.pathname === '/' && JSON.stringify({
     font-size: var(--t-xs); color: var(--ash);
   }
   .foot-links { display: flex; gap: 1.5rem; }
-  .foot a { transition: color 0.3s; }
+  .foot a { padding-block: 0.75rem; margin-block: -0.75rem; transition: color 0.3s; } /* veća površina za dodir, isti izgled */
   .foot a:hover { color: var(--white); }
 </style>
