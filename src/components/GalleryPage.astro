@@ -1,6 +1,7 @@
 ---
 import { Picture, getImage } from 'astro:assets';
 import Lightbox from './Lightbox.astro';
+import Timeline from './Timeline.astro';
 import type { Item, VideoItem } from '../data/work';
 import { sections, covers } from '../data/work';
 
@@ -35,6 +36,8 @@ const sizes = {
     <a href="/#projekti" class="back">Svi radovi</a>
     <h1 class="display g-title" transition:name={`title-${slug}`}>{section.title}</h1>
     <p class="g-intro">{intro}</p>
+    <nav class="g-nav" aria-label="Vrsta radova">
+      {sections.map((s) => <a href={`/${s.slug}/`} aria-current={s.slug === slug ? 'page' : undefined}>{s.title}<span class="tc">{s.count}</span></a>)}
   </div>
 </section>
 
@@ -93,6 +96,7 @@ const sizes = {
 </a>
 
 <Lightbox />
+<Timeline />
 
 <style>
   .g-head { padding-top: 88px; }
@@ -111,6 +115,11 @@ const sizes = {
   .back:hover { color: var(--white); }
   .g-title { font-size: var(--t-3xl); color: var(--white); width: fit-content; }
   .g-intro { max-width: 52ch; color: var(--bone); opacity: 0.8; }
+  .g-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .g-nav a { display: inline-flex; align-items: center; gap: 0.7rem; min-height: 44px; padding: 0.55rem 1rem; border: 1px solid var(--line); border-radius: 999px; font-size: var(--t-xs); color: var(--ash); }
+  .g-nav a:hover { color: var(--white); border-color: var(--ash); }
+  .g-nav a[aria-current] { background: var(--bone); color: var(--ink); border-color: transparent; }
+  .g-nav span { font-size: 0.7rem; opacity: 0.7; }
 
   .grid { --gap: 12px; padding-bottom: 4rem; }
   /* fotke: masonry koji se čita red po red (redoslijed grupa i boja ostaje vidljiv).
@@ -174,7 +183,7 @@ const sizes = {
   .g-ext-badge svg { transition: transform 0.5s var(--ease-out); }
   .g-ext:hover .g-ext-badge { background: rgba(0, 0, 0, 0.75); }
   .g-ext:hover .g-ext-badge svg { transform: translate(2px, -2px); }
-  .g-cap { display: flex; flex-direction: column; gap: 0.1rem; padding-top: 0.85rem; }
+  .g-cap { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.9rem 0.25rem 0; line-height: 1.4; }
   .g-cap-t { font-weight: 600; color: var(--white); }
   .g-cap-n { font-size: var(--t-xs); color: var(--ash); }
 

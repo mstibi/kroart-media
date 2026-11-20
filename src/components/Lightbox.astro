@@ -39,6 +39,14 @@
   }
   .lb-stage :global(.lb-embed-frame) { opacity: 0; transition: opacity 0.5s ease; background: #000; }
   .lb-stage :global(.lb-embed-frame.is-ready) { opacity: 1; }
+  .lb-stage :global(.lb-embed-error:not([hidden])) {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; gap: 1.25rem; padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.85); text-align: center; font-size: var(--t-s);
+  }
+  .lb-stage :global(.lb-embed-error button), .lb-stage :global(.lb-embed-error a) {
+    padding: 0.65rem 1rem; border: 1px solid var(--line); border-radius: 999px;
+  }
   .lb-cap {
     position: absolute; left: 0; right: 0; bottom: 0;
     display: flex; justify-content: space-between; gap: 1rem;
@@ -48,6 +56,8 @@
   }
   .lb-src { margin-left: auto; color: var(--bone); white-space: nowrap; transition: color 0.3s; }
   .lb-src:hover { color: var(--white); }
+  .lb-alt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-n { flex-shrink: 0; }
   .lb-btn {
     position: absolute; display: grid; place-items: center;
     width: 48px; height: 48px; border-radius: 999px;
@@ -64,12 +74,17 @@
   .lb-prev { left: 16px; top: 50%; margin-top: -24px; }
   .lb-next { right: 16px; top: 50%; margin-top: -24px; }
   @media (max-width: 720px) {
-    .lb-prev, .lb-next { top: auto; bottom: 56px; margin-top: 0; }
+    .lb-prev, .lb-next { top: auto; bottom: 100px; margin-top: 0; }
+    .lb-cap { flex-wrap: wrap; gap: 0.35rem 1rem; padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+    .lb-alt { flex-basis: 100%; }
+    .lb-src { margin-left: 0; }
+    .lb-n { margin-left: auto; }
   }
 </style>
 
 <script>
   import { gsap } from 'gsap';
+  import { watchTikTok } from '../scripts/tiktok-player';
 
   type Item = HTMLElement & { dataset: { full: string; w: string; h: string; kind?: string; video?: string; embed?: string; href?: string; platform?: string; alt: string } };
 
@@ -87,8 +102,9 @@
     const btns = [...lb.querySelectorAll<HTMLElement>('.lb-btn')];
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let idx = 0, cur: HTMLElement | null = null, busy = false;
+    let stopPlayer: (() => void) | undefined;
     const ac = new AbortController();
-    document.addEventListener('astro:before-swap', () => ac.abort(), { once: true });
+    document.addEventListener('astro:before-swap', () => { stopPlayer?.(); ac.abort(); }, { once: true });
 
     const fit = (it: Item) => {
       const w = Number(it.dataset.w), h = Number(it.dataset.h);
@@ -121,8 +137,9 @@
         f.src = it.dataset.embed!; f.title = it.dataset.alt; f.className = 'lb-embed-frame';
         f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
         f.allowFullscreen = true;
-        f.addEventListener('load', () => f.classList.add('is-ready'), { once: true });
+        f.addEventListener('load', () => f.classList.add('is-ready'));
         wrap.append(poster, f);
+        if (it.dataset.platform === 'TikTok') stopPlayer = watchTikTok(f, wrap, it.dataset.href!);
         el = wrap;
       } else {
         const img = document.createElement('img');
@@ -175,6 +192,7 @@
       const onScreen = r.bottom > 0 && r.top < innerHeight;
       const d = reduce ? 0 : 0.6;
       const el = cur;
+      stopPlayer?.(); stopPlayer = undefined;
       if (el instanceof HTMLVideoElement) el.pause();
       gsap.to([cap, ...btns], { opacity: 0, duration: 0.2 });
       gsap.to(bg, { opacity: 0, duration: d, ease: 'power2.inOut' });
@@ -197,6 +215,7 @@
       busy = true;
       const prevItem = items[idx];
       const old = cur;
+      stopPlayer?.(); stopPlayer = undefined;
       if (old instanceof HTMLVideoElement) old.pause();
       idx = (idx + dir + items.length) % items.length;
       const it = items[idx];
@@ -225,6 +244,7 @@
     let sx = 0, sy = 0;
     stage.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
     stage.addEventListener('pointerup', (e) => {
+      if ((e.target as HTMLElement).closest('video, iframe, button, a')) return;
       const dx = e.clientX - sx, dy = e.clientY - sy;
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
       else if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && e.target === stage) close();

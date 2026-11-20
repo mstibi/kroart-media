@@ -4,7 +4,7 @@ import { CONTACT_EMAIL, INSTAGRAM } from '../data/work';
 // Bez ključa forma se ne prikazuje, ostaju email i Instagram.
 const key = import.meta.env.PUBLIC_WEB3FORMS_KEY;
 ---
-<section class="contact wrap" id="kontakt" aria-labelledby="kontakt-title">
+<section class:list={['contact', 'wrap', { 'contact-direct': !key }]} id="kontakt" aria-labelledby="kontakt-title">
   <div class="intro">
     <h2 id="kontakt-title" class="display">Imate projekt na umu?</h2>
     <p>Napišite nam što trebate: video, fotke, vođenje profila ili web stranicu. Javit ćemo se s prijedlogom i cijenom.</p>
@@ -43,6 +43,13 @@ const key = import.meta.env.PUBLIC_WEB3FORMS_KEY;
     padding-block: clamp(5rem, 10vw, 9rem);
   }
   .intro { display: grid; align-content: start; gap: 1.25rem; }
+  .contact-direct { grid-template-columns: minmax(0, 1fr); }
+  .contact-direct .intro {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: end; gap: 2rem 4rem;
+    padding-top: clamp(2rem, 5vw, 4rem); border-top: 1px solid var(--line);
+  }
+  .contact-direct h2 { grid-row: span 2; max-width: 13ch; font-size: clamp(3rem, 6vw, 5.5rem); }
+  .contact-direct .direct { margin: 0; }
   h2 { font-size: var(--t-3xl); color: var(--white); }
   .intro p { max-width: 42ch; color: var(--bone); opacity: 0.8; }
   .direct { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
@@ -63,7 +70,10 @@ const key = import.meta.env.PUBLIC_WEB3FORMS_KEY;
   .send[disabled] { opacity: 0.5; pointer-events: none; }
   .status { min-height: 1.5em; font-size: var(--t-xs); color: var(--bone); }
 
-  @media (max-width: 860px) { .contact { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) {
+    .contact, .contact-direct .intro { grid-template-columns: minmax(0, 1fr); }
+    .contact-direct h2 { grid-row: auto; }
+  }
 </style>
 
 <script>

@@ -110,13 +110,7 @@ const mutedFrom = words.indexOf('Izrađujemo');
 
 <script>
   import { gsap } from 'gsap';
-
-  const FPS = 25;
-  const tcFormat = (t: number) => {
-    const f = Math.floor(t * FPS);
-    const ff = f % FPS, s = Math.floor(f / FPS) % 60, m = Math.floor(f / FPS / 60);
-    return `00:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:${String(ff).padStart(2, '0')}`;
-  };
+  import { tcFormat } from '../scripts/timecode';
 
   function intro() {
     const hero = document.getElementById('hero');

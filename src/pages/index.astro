@@ -40,15 +40,14 @@ const services = [
       <h2 id="usluge-t" class="sec-title display">Usluge</h2>
       <p class="sec-aside">Od ideje i snimanja do objave</p>
     </header>
-    <ol class="services">
-      {services.map((s, i) => (
+    <ul class="services">
+      {services.map((s) => (
         <li class="service reveal">
-          <span class="s-num tc">{String(i + 1).padStart(2, '0')}</span>
           <h3 class="s-title">{s.title}</h3>
           <p class="s-text">{s.text}</p>
         </li>
       ))}
-    </ol>
+    </ul>
   </section>
 
   <section class="sec wrap" id="o-nama" aria-labelledby="o-nama-t">
@@ -77,20 +76,19 @@ const services = [
 
   .services { list-style: none; margin: 0; padding: 0; }
   .service {
-    display: grid; grid-template-columns: 4rem minmax(0, 1.1fr) minmax(0, 1fr); align-items: baseline; gap: 0.5rem 2rem;
-    padding: 1.6rem 0;
+    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: baseline; gap: 1rem 4rem;
+    padding: 2rem 0;
     border-bottom: 1px solid var(--line);
   }
   .service:first-child { padding-top: 0.4rem; }
-  .s-num { font-size: var(--t-xs); color: var(--ash); transition: color 0.4s var(--ease-out); }
   .s-title {
     font-size: var(--t-xl); font-weight: 700; font-stretch: 118%; line-height: 1.1; letter-spacing: -0.015em;
     color: var(--bone);
     transition: color 0.4s var(--ease-out), transform 0.7s var(--ease-out);
   }
   .s-text { max-width: 40ch; color: var(--ash); transition: color 0.4s var(--ease-out); }
-  .service:hover .s-title { color: var(--white); transform: translateX(10px); }
-  .service:hover :is(.s-num, .s-text) { color: var(--bone); }
+  .service:hover .s-title { color: var(--white); }
+  .service:hover .s-text { color: var(--bone); }
 
   .about-text {
     max-width: 34ch;
@@ -105,8 +103,8 @@ const services = [
   }
 
   @media (max-width: 860px) {
-    .service { grid-template-columns: 2.5rem minmax(0, 1fr); }
-    .s-text { grid-column: 2; }
+    .service { grid-template-columns: minmax(0, 1fr); }
+    .s-text { max-width: 54ch; }
   }
   @media (max-width: 560px) {
     .sec-head { flex-direction: column; align-items: flex-start; }

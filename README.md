@@ -15,6 +15,15 @@ npm install
 npm run dev
 ```
 
+## Verify
+
+```bash
+npm run build
+npm test
+```
+
+Node 22.18+ is required for the TypeScript regression test. Tests cover TikTok error handling and the built pages (internal links, anchors, local assets, headings and video inventory). Browser checks are still needed for layout, keyboard navigation and third-party playback.
+
 ## Media
 
 Original files live in `raw/` (not committed, ~1 GB). `npm run media` converts them:

@@ -18,7 +18,7 @@ const sets = [0, 1, 2];
               <span class="num tc" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <span class="plus" aria-hidden="true"></span>
             </button>
-            <div class="more">
+            <div class="more" inert>
               <div class="more-in">
                 {p.tag && <p class="m-tag">{p.tag}</p>}
                 <h3 class="m-name">{p.name}</h3>
@@ -146,8 +146,9 @@ const sets = [0, 1, 2];
   .m-cta:hover span { transform: translateX(4px); }
 
   @media (max-width: 640px) {
-    .cl { --w: 190px; --h: 210px; --open: 88vw; --face-open: 140px; }
-    .more-in { padding: 1.25rem 1.1rem; }
+    .cl { --w: 190px; --h: 260px; --open: 92vw; --face-open: 30vw; }
+    .more-in { padding: 1.1rem 0.9rem; }
+    .m-name { font-size: 1.2rem; overflow-wrap: anywhere; }
     .m-thumb { width: 42px; }
   }
 </style>
@@ -189,6 +190,7 @@ const sets = [0, 1, 2];
         const o = i !== null && Number(c.dataset.i) === i;
         c.classList.toggle('is-open', o);
         c.querySelector('.face')!.setAttribute('aria-expanded', String(o));
+        c.querySelector<HTMLElement>('.more')!.inert = !o;
       });
       if (i !== null) { aim = i; aimUntil = now() + 1100; } else resumeAt = now() + 800;
     };
@@ -270,7 +272,7 @@ const sets = [0, 1, 2];
       last = t;
       if (!visible || document.hidden) return;
 
-      const paused = reduce || hover || dragging || open !== null || t < resumeAt;
+      const paused = reduce || root.matches(':focus-within') || hover || dragging || open !== null || t < resumeAt;
       // zalet se gasi postupno, a automatsko kretanje se lagano pali/gasi
       speed += ((paused ? 0 : AUTO) - speed) * Math.min(1, 0.045 * dt);
 

@@ -47,16 +47,20 @@ export const photos: Item[] = ([
   ['zmajo-i-jakov-2', 'Nasmijani obožavatelj s darom na koncertu'],
   ['zmajo-6', 'Izvođač uz ogradu s publikom'],
   // portreti: KSV, pa Brights naočale (žuta stakla povezuju ta dva seta)
-  ['ksv2', 'Portret mladića sa žutim naočalama na otvorenom'],
   ['ksv-1', 'Portret mladića u tamnoj trenirci pod vedrim nebom'],
+  ['ksv-3', 'Mladić u zelenoj hudici i naočalama povlači kapuljaču na pruzi'],
+  ['ksv2', 'Portret mladića sa žutim naočalama na otvorenom'],
   ['prdivoj1', 'Nasmijani mladić s kovrčavom kosom i žutim naočalama Brights'],
   ['prdivoj-3', 'Mladić namješta naočale Brights sa žutim staklima'],
   ['prdivoj-grid', 'Crno-bijeli kolaž mladića sa žutim naočalama Brights'],
   ['prdivoj2', 'Krupni kadar naočala Brights na licu mladića'],
-  // prostori
+  // prostori: Groom Room, zeleni zid -> crveni Uppercut -> toplo drvo -> žuto
   ['groomroomweb4', 'Interijer brijačnice Groom Room'],
   ['groomroomweb15', 'Brijač šiša klijenta u salonu Groom Room'],
+  ['groomroomweb3', 'Brijački ogrtač Uppercut Deluxe na stolici uz zeleni zid'],
   ['groomroomweb5', 'Svjetleći znak brijačnice Groom Room'],
+  ['groomroomweb8', 'Posjetnice brijačnice Groom Room na drvenom pultu'],
+  ['groomroomweb13', 'Žuti trimer s logom Lamborghini u držaču'],
 ] as const).map(([slug, alt]) => ({ slug, alt, src: pick(photoFiles, 'photos', slug) }));
 
 export const visuals: Item[] = ([
@@ -86,7 +90,6 @@ export const videos: VideoItem[] = ([
   // vanjski videi: sličica u raw/videos-external/ -> src/assets/posters/ (linkovi platformi na sličice istječu)
   // [slug, naslov, opis, alt, platforma, id na platformi, link]
   ['ht-free-wifi', 'Hrvatski Telekom × Croatia Airlines', 'Instagram reel', 'Mladić s ruksakom trči kroz zračnu luku, natpis „Free Wi-Fi na 10.000 m visine?”', 'Instagram', 'DOX7tHUiPh0', 'https://www.instagram.com/reel/DOX7tHUiPh0/'],
-  ['arsa-giveaway', 'Arsa Ovde, giveaway', 'TikTok', 'Arsa sa slušalicama oko vrata i brojem 9,876', 'TikTok', '7518081728536415493', 'https://www.tiktok.com/@arsaovdelive/video/7518081728536415493'],
   ['arsa-premrsav', 'Arsa Ovde, Premršav', 'TikTok', 'Arsa na kauču s mikrofonom, natpis „Premršav”', 'TikTok', '7534739935497112838', 'https://www.tiktok.com/@nijearsaovde/video/7534739935497112838'],
   ['kroart-sta-ako-uspijemo', 'A šta ako uspijemo?', 'Osobni projekt · YouTube Short', 'Mladić pokazuje znak OK u kameru', 'YouTube', '7ar3Fc92h1g', 'https://youtube.com/shorts/7ar3Fc92h1g'],
   ['kroart-wear-brights', 'Wear Brights × Nuke', 'Osobni projekt · YouTube Short', 'Mladić s crvenim naočalama za stolom otvara kutiju', 'YouTube', 'lVohOqianU4', 'https://youtube.com/shorts/lVohOqianU4'],
@@ -105,9 +108,9 @@ export const videos: VideoItem[] = ([
   ['fissure-faceit', 'Fissure, klasični igrači Faceita', 'TikTok', 'Dvojica mladića s mikrofonom, natpis „Imam nož”', 'TikTok', '7527703015059426616', 'https://www.tiktok.com/@fissurebalkan/video/7527703015059426616'],
 ] as const).map(([slug, title, note, alt, platform, id, href]): VideoItem => ({
   slug, title, note, alt, platform, href,
-  // YouTube i TikTok se puštaju u našem lightboxu (TikTok kreće utišan, inače preglednik blokira autoplay); Instagram embed se ne da urediti, pa vodi na Instagram
+  // TikTok ima ručni Play sa zvukom; muted=1 zaključava zvuk, a autoplay ovisi o browseru.
   embed: platform === 'YouTube' ? `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0`
-    : platform === 'TikTok' ? `https://www.tiktok.com/player/v1/${id}?autoplay=1&muted=1&music_info=1&description=0&rel=0`
+    : platform === 'TikTok' ? `https://www.tiktok.com/player/v1/${id}?autoplay=0&muted=0&controls=1&music_info=1&description=0&rel=0`
     : undefined,
   src: pick(posterFiles, 'posters', slug),
 })));
@@ -140,7 +143,7 @@ export const partners: Partner[] = [
     quote: { lines: ['Top video!!!'], author: 'M. B.', role: 'Vlasnik' },
     work: [vid('pannonian-otvoreni-smo'), vid('pannonian-padel-hunt'), { item: find(visuals, 'carina-reket'), href: '/vizuali/' }],
   }),
-  P('arsa-ovde', 'Arsa Ovde', { tag: 'Kreator sadržaja · 2M+ pratitelja', did: 'Montaža TikTok videa', work: [vid('arsa-giveaway'), vid('arsa-premrsav')] }),
+  P('arsa-ovde', 'Arsa Ovde', { tag: 'Kreator sadržaja · 2M+ pratitelja', did: 'Montaža TikTok videa', work: [vid('arsa-premrsav')] }),
   P('groom-room', 'Groom Room', {
     tag: 'Barbershop', did: 'Reelsi, brand video i fotografija prostora',
     quote: {

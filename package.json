@@ -7,6 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "test": "node --experimental-strip-types --test scripts/*.test.mjs",
     "media": "bash scripts/prepare-media.sh"
   },
   "dependencies": {

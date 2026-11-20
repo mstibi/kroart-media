@@ -23,9 +23,11 @@ Pazi: ako dev server "ne vidi" izmjene, provjeri da nema starog procesa na 4321 
 - Vanjski videi: sličice u `raw/videos-external/`, kopirane u `src/assets/posters/<slug>.jpg`. TikTok cover se dobije iz HTML-a stranice videa (`"cover":"..."`), Instagram iz `/reel/<id>/embed/captioned/` (curl dobije login zid; radi kroz preglednik na instagram.com originu). YouTube: `i.ytimg.com/vi/<id>/oar2.jpg`.
 
 ## Ponašanje koje treba znati
-- Vanjski videi: YouTube/TikTok se puštaju u lightboxu (iframe tek na klik; TikTok `muted=1`), Instagram je link u novoj kartici. Lightbox ima "Otvori na X" link kao rezervu.
+- Vanjski videi: YouTube/TikTok se puštaju u lightboxu (iframe tek na klik; TikTok ručni Play, `autoplay=0&muted=0`), Instagram je link u novoj kartici. TikTok `muted=1` zaključava glasnoću. `src/scripts/tiktok-player.ts` prati player errors i 20 s timeout, daje retry/link na original; cleanup pri zatvaranju, promjeni videa i navigaciji.
 - Fotke: row-order masonry (CSS grid + `cqi`, `--span` po omjeru slike, `dense`). Redoslijed u `photos` = koncerti po izvođaču + prijelaz boja, pa portreti, pa prostori.
 - Carousel (Suradnje): transform + pointer drag, 3 kopije liste (sve klikabilne, samo srednja u tab redoslijedu). NE vraćati `inert` na kopije (zbog toga klik nije radio).
+- Carousel nema gumb za pauzu (Stibi tako htio, 2026-11-20); staje na hover, fokus, drag i otvorenu karticu.
+- Timeline (`Timeline.astro`, u svim galerijama): čisto ukrasna okomita traka uz desni rub (ravnalo, bijeli "odgledani" dio, playhead, timecode uz playhead). Bez teksta, klikova i navigacije (Stibi tako htio, 2026-11-20; verzije s grupama i scrubbingom odbačene kao nepotrebne). Timecode se vidi od 1440 px, traka od 761 px. Na naslovnici je nema. Timecode format dijeli s Herom (`src/scripts/timecode.ts`).
 - Recenzije: inicijali u avataru, ispod firma + uloga. Tekst doslovno, kvačice ispravljene, "je****ca" ostaje.
 
 ## Odluke od Stibija (ne mijenjati bez pitanja)
@@ -36,10 +38,10 @@ Pazi: ako dev server "ne vidi" izmjene, provjeri da nema starog procesa na 4321 
 - Bez Claude/AI atribucije u commitima i README. Budžet 0 EUR.
 
 ## Otvoreno / sljedeći koraci
-1. Stibi treba provjeriti TikTok playere u Chromeu (prijavio da neki ne rade; popravljeno muted autoplay + 9:16 + link na izvor, nije potvrđeno).
+1. TikTok (2026-11-19): u browseru potvrđen Play za „Arsa Ovde, Premršav” i volume 100. „Arsa Ovde, giveaway” vraća TikTok `NotSupportedError` / Player error; sada dobije fallback. Za pouzdano puštanje tog rada treba originalni MP4. Ostale TikTok videe još provjeriti u Chromeu. Build i `node --experimental-strip-types --test scripts/tiktok-player.test.mjs` prolaze.
 2. Tekstovi koje je pisao Claude, a KroArt treba potvrditi: opisi usluga, `tag`/`did` klijenata u `work.ts`, naslovi vanjskih videa, alt tekstovi.
 3. Web3Forms ključ (`PUBLIC_WEB3FORMS_KEY`) za kontakt formu: Stibi ga mora sam nabaviti (besplatno).
-4. git init + GitHub repo + Cloudflare Pages (build `npm run build`, output `dist`, `NODE_VERSION=22`). Commiti bez AI atribucije.
+4. Repo: privatni https://github.com/mstibi/kroart-media (main). Ostaje Cloudflare Pages (build `npm run build`, output `dist`, `NODE_VERSION=22`). Commiti bez AI atribucije.
 5. Mogući dodaci o kojima se pričalo: filter po klijentu u Videima; ostatak "O nama" teksta (sad samo o montaži).
 
 ## Backup

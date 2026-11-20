@@ -100,7 +100,9 @@ const covers = {
       panel.addEventListener('focus', play);
       panel.addEventListener('blur', stop);
     } else {
-      new IntersectionObserver(([e]) => (e.isIntersecting ? play() : stop()), { threshold: 0.6 }).observe(panel);
+      const io = new IntersectionObserver(([e]) => (e.isIntersecting ? play() : stop()), { threshold: 0.6 });
+      io.observe(panel);
+      document.addEventListener('astro:before-swap', () => { io.disconnect(); stop(); }, { once: true });
     }
   }
   document.addEventListener('astro:page-load', panels);
